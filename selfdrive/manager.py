@@ -2,15 +2,16 @@
 import os
 
 # check if NEOS update is required
-while 1:
+"""while 1:
   if ((not os.path.isfile("/VERSION")
       or int(open("/VERSION").read()) < 3)
       and not os.path.isfile("/data/media/0/noupdate")):
     os.system("curl -o /tmp/updater https://openpilot.comma.ai/updater && chmod +x /tmp/updater && /tmp/updater")
   else:
     break
-
+"""
 import sys
+print sys.path
 import time
 import importlib
 import subprocess
@@ -40,18 +41,19 @@ BASEDIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../")
 
 # comment out anything you don't want to run
 managed_processes = {
-  "uploader": "selfdrive.loggerd.uploader",
+  #"uploader": "selfdrive.loggerd.uploader",
   "controlsd": "selfdrive.controls.controlsd",
   "radard": "selfdrive.controls.radard",
-  "loggerd": ("loggerd", ["./loggerd"]),
-  "logmessaged": "selfdrive.logmessaged",
-  "tombstoned": "selfdrive.tombstoned",
-  "logcatd": ("logcatd", ["./logcatd"]),
-  "proclogd": ("proclogd", ["./proclogd"]),
+  #"loggerd": ("loggerd", ["./loggerd"]),
+  #"logmessaged": "selfdrive.logmessaged",
+  #"tombstoned": "selfdrive.tombstoned",
+  #"logcatd": ("logcatd", ["./logcatd"]),
+  #"proclogd": ("proclogd", ["./proclogd"]),
   "boardd": ("boardd", ["./boardd"]),   # switch to c++ boardd
-  "ui": ("ui", ["./ui"]),
-  "visiond": ("visiond", ["./visiond"]),
-  "sensord": ("sensord", ["./sensord"]), }
+  #"ui": ("ui", ["./ui"]),
+  #"visiond": ("visiond", ["./visiond"]),
+  #"sensord": ("sensord", ["./sensord"]), 
+  }
 
 running = {}
 def get_running():

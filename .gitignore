@@ -25,5 +25,7 @@ selfdrive/boardd/boardd
 selfdrive/logcatd/logcatd
 selfdrive/proclogd/proclogd
 selfdrive/ui/ui
+selfdrive/test/plant/out
+selfdrive/data
 /src/
 

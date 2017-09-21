@@ -1128,6 +1128,14 @@ struct UbloxGnss {
     fitInterval @35 :Float64;
   }
 }
+
+struct ParkingData{
+  working @0 :Bool;
+  findtarget @1 :Bool;
+  targetLoC @2 :Float32;
+  targetLaC @3 :Float32;
+}
+
 struct Event {
   # in nanoseconds?
   logMonoTime @0 :UInt64;
@@ -1167,5 +1175,6 @@ struct Event {
     lidarPts @32 :LidarPts;
     procLog @33 :ProcLog;
     ubloxGnss @34 :UbloxGnss;
+    parking @35 :ParkingData;
   }
 }

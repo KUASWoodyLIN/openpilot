@@ -45,6 +45,8 @@ gpsLocationExternal: [8032, true]
 ubloxGnss: [8033, true]
 testModel: [8040, false]
 
+parking: [8041, true]
+
 # manager -- base process to manage starting and stopping of all others
 #   subscribes: health
 #   publishes:  thermal
