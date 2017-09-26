@@ -12,4 +12,4 @@ export NOVISION
 export LEAN
 export NOCONTROL
 
-./manager.py
+./Linux_manager.py

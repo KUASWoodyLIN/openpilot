@@ -1,5 +1,5 @@
 #!/bin/bash
-
+export PYTHONPATH="${PYTHONPATH}://home/woodylin/github/openpilot"
 export OPTEST=1
 export OLD_CAN=1
 

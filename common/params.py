@@ -234,7 +234,7 @@ class JSDB(object):
       return DBReader(self._fn)
 
 class Params(object):
-  def __init__(self, db='/home/woodylin/data'):    #/data/params
+  def __init__(self, db='/home/woodylin/data'):    #/data/params  /home/woodylin/data
     self.env = JSDB(db)
 
   def _clear_keys_with_type(self, tx_type):

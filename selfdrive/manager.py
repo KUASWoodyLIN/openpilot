@@ -11,7 +11,6 @@ import os
     break
 """
 import sys
-print sys.path
 import time
 import importlib
 import subprocess
@@ -49,7 +48,7 @@ managed_processes = {
   #"tombstoned": "selfdrive.tombstoned",
   #"logcatd": ("logcatd", ["./logcatd"]),
   #"proclogd": ("proclogd", ["./proclogd"]),
-  "boardd": ("boardd", ["./boardd"]),   # switch to c++ boardd
+  #"boardd": ("boardd", ["./boardd"]),   # switch to c++ boardd
   #"ui": ("ui", ["./ui"]),
   #"visiond": ("visiond", ["./visiond"]),
   #"sensord": ("sensord", ["./sensord"]), 

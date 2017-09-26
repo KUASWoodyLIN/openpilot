@@ -132,6 +132,10 @@ class SwagLogger(logging.Logger):
 
 if __name__ == "__main__":
   log = SwagLogger()
+  log.setLevel(logging.DEBUG)
+
+  outhandler = logging.StreamHandler()
+  log.addHandler(outhandler)
 
   log.info("asdasd %s", "a")
   log.info({'wut': 1})
