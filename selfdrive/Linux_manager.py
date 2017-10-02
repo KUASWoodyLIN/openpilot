@@ -154,7 +154,7 @@ def manager_thread():
     cloudlog.info(dict(os.environ))
 
     panda = False
-    """if os.getenv("NOBOARD") is None:
+    if os.getenv("NOBOARD") is None:
         # *** wait for board ***
         panda = wait_for_device() == 0x2300
 
@@ -164,7 +164,7 @@ def manager_thread():
         boarddir = os.path.join(BASEDIR,"panda/board/")
         mkfile = "Makefile" if panda else "Makefile.legacy"
         print "using",mkfile
-        system("cd %s && make -f %s" % (boarddir,mkfile))"""
+        system("cd %s && make -f %s" % (boarddir,mkfile))
 
     start_managed_process("boardd")
     
@@ -289,10 +289,10 @@ def main():
     #os.umask(0)
     global gctx
     gctx = {}
-    """try:
+    try:
         manager_prepare()
     except Exception:
-        traceback.print_exc()"""
+        traceback.print_exc()
 
     try:
         manager_thread()

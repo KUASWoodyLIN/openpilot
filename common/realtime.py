@@ -108,4 +108,6 @@ class Ratekeeper(object):
     return lagged
 
 if __name__ == "__main__":
+  rk = Ratekeeper(100)
+  print rk.frame
   print sec_since_boot()

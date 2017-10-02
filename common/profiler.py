@@ -24,3 +24,11 @@ class Profiler(object):
       tot += ms
     print "    TOTAL: %7.2f" % (tot*1000.0)
 
+if __name__ == "__main__":
+  import time
+  pf = Profiler(True)
+  pf.checkpoint("Start")
+  pf.display()
+  time.sleep(1)
+  pf.checkpoint("Finish")
+  pf.display()
