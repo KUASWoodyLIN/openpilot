@@ -43,6 +43,9 @@ lidarPts: [8030, true]
 procLog: [8031, true]
 gpsLocationExternal: [8032, true]
 ubloxGnss: [8033, true]
+clocks: [8034, true]
+liveMpc: [8035, true]
+
 testModel: [8040, false]
 
 parking: [8041, true]
