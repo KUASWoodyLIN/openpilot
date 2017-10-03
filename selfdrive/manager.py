@@ -2,17 +2,6 @@
 import os
 import time
 
-<<<<<<< HEAD
-# check if NEOS update is required
-"""while 1:
-  if ((not os.path.isfile("/VERSION")
-      or int(open("/VERSION").read()) < 3)
-      and not os.path.isfile("/data/media/0/noupdate")):
-    os.system("curl -o /tmp/updater https://openpilot.comma.ai/updater && chmod +x /tmp/updater && /tmp/updater")
-  else:
-    break
-"""
-=======
 if os.path.isfile("/init.qcom.rc"):
   # check if NEOS update is required
   while 1:
@@ -24,7 +13,6 @@ if os.path.isfile("/init.qcom.rc"):
       break
     time.sleep(10)
 
->>>>>>> upstream/devel
 import sys
 import importlib
 import subprocess
@@ -59,18 +47,6 @@ managed_processes = {
   #"uploader": "selfdrive.loggerd.uploader",
   "controlsd": "selfdrive.controls.controlsd",
   "radard": "selfdrive.controls.radard",
-<<<<<<< HEAD
-  #"loggerd": ("loggerd", ["./loggerd"]),
-  #"logmessaged": "selfdrive.logmessaged",
-  #"tombstoned": "selfdrive.tombstoned",
-  #"logcatd": ("logcatd", ["./logcatd"]),
-  #"proclogd": ("proclogd", ["./proclogd"]),
-  #"boardd": ("boardd", ["./boardd"]),   # switch to c++ boardd
-  #"ui": ("ui", ["./ui"]),
-  #"visiond": ("visiond", ["./visiond"]),
-  #"sensord": ("sensord", ["./sensord"]), 
-  }
-=======
   "loggerd": ("selfdrive/loggerd", ["./loggerd"]),
   "logmessaged": "selfdrive.logmessaged",
   "tombstoned": "selfdrive.tombstoned",
@@ -80,7 +56,7 @@ managed_processes = {
   "ui": ("selfdrive/ui", ["./ui"]),
   "visiond": ("selfdrive/visiond", ["./visiond"]),
   "sensord": ("selfdrive/sensord", ["./sensord"]), }
->>>>>>> upstream/devel
+
 
 running = {}
 def get_running():

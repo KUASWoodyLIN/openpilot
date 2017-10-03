@@ -26,6 +26,7 @@ selfdrive/logcatd/logcatd
 selfdrive/proclogd/proclogd
 selfdrive/ui/ui
 selfdrive/test/plant/out
+selfdrive/test/tests/plant/out
 selfdrive/data
 /src/
 .vscode

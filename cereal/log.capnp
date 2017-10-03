@@ -1178,13 +1178,7 @@ struct UbloxGnss {
   }
 }
 
-<<<<<<< HEAD
-struct ParkingData{
-  working @0 :Bool;
-  findtarget @1 :Bool;
-  targetLoC @2 :Float32;
-  targetLaC @3 :Float32;
-=======
+
 struct Clocks {
   bootTimeNanos @0 :UInt64;
   monotonicNanos @1 :UInt64;
@@ -1198,7 +1192,6 @@ struct LiveMpcData {
   y @1 :List(Float32);
   psi @2 :List(Float32);
   delta @3 :List(Float32);
->>>>>>> upstream/devel
 }
 
 struct Event {
@@ -1240,11 +1233,7 @@ struct Event {
     lidarPts @32 :LidarPts;
     procLog @33 :ProcLog;
     ubloxGnss @34 :UbloxGnss;
-<<<<<<< HEAD
-    parking @35 :ParkingData;
-=======
     clocks @35 :Clocks;
     liveMpc @36 :LiveMpcData;
->>>>>>> upstream/devel
   }
 }

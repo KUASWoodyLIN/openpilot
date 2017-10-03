@@ -429,11 +429,11 @@ class CarState(object):
     # brake switch has shown some single time step noise, so only considered when
     # switch is on for at least 2 consecutive CAN samples
     self.brake_pressed = cp.vl[0x17C]['BRAKE_PRESSED'] or \
-                         (cp.vl[0x17C]['BRAKE_SWITCH'] and self.brake_switch_prev #and \
-                         #cp.ts[0x17C]['BRAKE_SWITCH'] != self.brake_switch_ts
+                         (cp.vl[0x17C]['BRAKE_SWITCH'] and self.brake_switch_prev and \
+                         cp.ts[0x17C]['BRAKE_SWITCH'] != self.brake_switch_ts
                          )
     self.brake_switch_prev = cp.vl[0x17C]['BRAKE_SWITCH']
-    #self.brake_switch_ts = cp.ts[0x17C]['BRAKE_SWITCH']
+    self.brake_switch_ts = cp.ts[0x17C]['BRAKE_SWITCH']
 
     self.user_brake = cp.vl[0x1A4]['USER_BRAKE']
     self.standstill = not cp.vl[0x1B0]['WHEELS_MOVING']
