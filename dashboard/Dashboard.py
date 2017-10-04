@@ -5,7 +5,9 @@ import numpy as np
 from Keyboard_input import kb
 
 from selfdrive import messaging
+from selfdrive.boardd.boardd import can_capnp_to_can_list
 from selfdrive.services import service_list
+from selfdrive.test.plant.plant import get_car_can_parser
 
 gas_press = np.zeros(20)
 break_press = np.zeros(20)
@@ -55,15 +57,6 @@ def main():
     plt.ylabel('press')
     plt.title('Car Dashboard')
 
-    context = zmq.Context()
-    sendcan = messaging.sub_sock(context, service_list['sendcan'].port)
-
-    # ******** get messages sent to the car ********
-    can_msgs = []
-    for a in messaging.drain_sock(Plant.sendcan):
-        can_msgs.extend(can_capnp_to_can_list(a.sendcan, [0, 2]))
-    self.cp.update_can(can_msgs)
-
     try:
         anim = animation.FuncAnimation(fig, animate, frames=20, interval=20, blit=True)
         plt.show()
@@ -73,6 +66,34 @@ def main():
         exit()
     except Exception as e:
         print "exception", e
+
+
+
+    context = zmq.Context()
+    sendcan = messaging.sub_sock(context, service_list['sendcan'].port)
+
+    cp = get_car_can_parser()
+
+    # ******** get messages sent to the car ********
+    can_msgs = []
+    for a in messaging.drain_sock(sendcan):
+        can_msgs.extend(can_capnp_to_can_list(a.sendcan, [0, 2]))
+    cp.update_can(can_msgs)
+
+    if cp.vl[0x1fa]['COMPUTER_BRAKE_REQUEST']:
+      brake = cp.vl[0x1fa]['COMPUTER_BRAKE']
+    else:
+      brake = 0.0
+
+    if cp.vl[0x200]['GAS_COMMAND'] > 0:
+      gas = cp.vl[0x200]['GAS_COMMAND'] / 256.0
+    else:
+      gas = 0.0
+
+    if cp.vl[0xe4]['STEER_TORQUE_REQUEST']:
+      steer_torque = cp.vl[0xe4]['STEER_TORQUE']*1.0/0xf00
+    else:
+      steer_torque = 0.0
 
 
 if __name__ == "__main__":
