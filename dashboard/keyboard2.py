@@ -27,6 +27,14 @@ class keyboardCatcher():
         self.gas_press = 0
         self.brake_press = 0
         self.steering_angle = 0
+        self.gas_press_last = 0
+        self.brake_press_last = 0
+        self.steering_angle_last = 0
+        self.gas_press_array = np.zeros(5)
+        self.brake_press_array = np.zeros(5)
+        self.steering_angle_array = np.zeros(5)
+        self.first_time = True
+        self.state_change = False
         # 初始化 curses
         self.screen = curses.initscr()
         # 設置不回應
@@ -71,31 +79,39 @@ class keyboardCatcher():
         char = self.screen.getch()
         if char == 119 or char == 87:
             self.car_gas()
+            self.state_change = True
         elif char == 97 or char == 65:
             self.car_steering(False)
+            self.state_change = True
         elif char == 115 or char == 83:
             self.car_brake()
+            self.state_change = True
         elif char == 100 or char == 68:
             self.car_steering(True)
+            self.state_change = True
+        else:
+            self.state_change = False
         return char
 
     def get_data(self):
-
-        if self.get_count == 5:
+        if self.first_time:
             self.get_count = 0
+            self.first_time = False
+        elif self.get_count == 4:
+            self.get_count = 0
+        else:
+            self.get_count = self.get_count + 1
 
         if self.get_count == 0:
-            gas_press = np.linspace(self.gas_press_last, self.gas_press, 5)
-            brake_press = np.linspace(self.brake_press_last, self.brake_press, 5)
-            steering_angle = np.linspace(self.steering_angle_last, self.steering_angle, 5)
+            self.gas_press_array = np.linspace(self.gas_press_last, self.gas_press, 5)
+            self.brake_press_array = np.linspace(self.brake_press_last, self.brake_press, 5)
+            self.steering_angle_array = np.linspace(self.steering_angle_last, self.steering_angle, 5)
         elif self.get_count == 4:
             self.gas_press_last = self.gas_press
             self.brake_press_last = self.brake_press
             self.steering_angle_last = self.steering_angle
-        else:
-            self.get_count += 1
 
-        return gas_press[self.get_count], brake_press[self.get_count], steering_angle[self.get_count]
+        return self.gas_press_array[self.get_count], self.brake_press_array[self.get_count], self.steering_angle_array[self.get_count]
 
     def finish(self):
         # 恢复控制台默认设置（若不恢复，会导致即使程序结束退出了，控制台仍然是没有回显的）
@@ -105,12 +121,18 @@ class keyboardCatcher():
         # 结束窗口
         curses.endwin()
 
+
 def data_send(kb, frame, sendcan, accord, crv, GAS_MAX, BRAKE_MAX, STEER_MAX, GAS_OFFSET):
-    #apply_gas, apply_brake, apply_steer= kb.get_data()
+    gas, brake, steer_torque = kb.get_data()
+    # if frame % 100 == 0:
+    #     print "gas: %.2f  brake: %.2f  steer: %5.2f" % (gas, brake, steer_torque)
     # steer torque is converted back to CAN reference (positive when steering right)
-    apply_gas = int(clip(kb.gas_press * GAS_MAX, 0, GAS_MAX - 1))
-    apply_brake = int(clip(kb.brake_press * BRAKE_MAX, 0, BRAKE_MAX - 1))
-    apply_steer = int(clip(-kb.steering_angle * STEER_MAX, -STEER_MAX, STEER_MAX))
+    apply_gas = int(clip(gas * GAS_MAX, 0, GAS_MAX - 1))
+    apply_brake = int(clip(brake * BRAKE_MAX, 0, BRAKE_MAX - 1))
+    apply_steer = int(clip(-steer_torque * STEER_MAX, -STEER_MAX, STEER_MAX))
+    # apply_gas = int(clip(kb.gas_press * GAS_MAX, 0, GAS_MAX - 1))
+    # apply_brake = int(clip(kb.brake_press * BRAKE_MAX, 0, BRAKE_MAX - 1))
+    # apply_steer = int(clip(-kb.steering_angle * STEER_MAX, -STEER_MAX, STEER_MAX))
 
     can_sends = []
     if accord:
