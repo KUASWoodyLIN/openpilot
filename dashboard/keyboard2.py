@@ -23,16 +23,17 @@ from common.realtime import set_realtime_priority, Ratekeeper
 
 
 class keyboardCatcher():
-    def __init__(self):
+    def __init__(self, step=5):
+        self.step = step
         self.gas_press = 0
         self.brake_press = 0
         self.steering_angle = 0
         self.gas_press_last = 0
         self.brake_press_last = 0
         self.steering_angle_last = 0
-        self.gas_press_array = np.zeros(5)
-        self.brake_press_array = np.zeros(5)
-        self.steering_angle_array = np.zeros(5)
+        self.gas_press_array = np.zeros(step)
+        self.brake_press_array = np.zeros(step)
+        self.steering_angle_array = np.zeros(step)
         self.first_time = True
         self.state_change = False
         # 初始化 curses
@@ -97,20 +98,22 @@ class keyboardCatcher():
         if self.first_time:
             self.get_count = 0
             self.first_time = False
-        elif self.get_count == 4:
+        elif self.get_count == self.step-1:
             self.get_count = 0
         else:
             self.get_count = self.get_count + 1
 
         if self.get_count == 0:
-            self.gas_press_array = np.linspace(self.gas_press_last, self.gas_press, 5)
-            self.brake_press_array = np.linspace(self.brake_press_last, self.brake_press, 5)
-            self.steering_angle_array = np.linspace(self.steering_angle_last, self.steering_angle, 5)
-        elif self.get_count == 4:
-            self.gas_press_last = self.gas_press
-            self.brake_press_last = self.brake_press
-            self.steering_angle_last = self.steering_angle
-
+            self.gas_press_array = np.linspace(self.gas_press_last, self.gas_press, self.step)
+            self.brake_press_array = np.linspace(self.brake_press_last, self.brake_press, self.step)
+            self.steering_angle_array = np.linspace(self.steering_angle_last, self.steering_angle, self.step)
+            #print 'YES YES'
+        elif self.get_count == self.step-1:
+            self.gas_press_last = self.gas_press_array[self.get_count]
+            self.brake_press_last = self.brake_press_array[self.get_count]
+            self.steering_angle_last = self.steering_angle_array[self.get_count]
+            #print 'YES'
+        #print self.get_count
         return self.gas_press_array[self.get_count], self.brake_press_array[self.get_count], self.steering_angle_array[self.get_count]
 
     def finish(self):
@@ -124,6 +127,7 @@ class keyboardCatcher():
 
 def data_send(kb, frame, sendcan, accord, crv, GAS_MAX, BRAKE_MAX, STEER_MAX, GAS_OFFSET):
     gas, brake, steer_torque = kb.get_data()
+    #print "gas: %.3f  brake: %.3f" % (gas, brake)
     # if frame % 100 == 0:
     #     print "gas: %.2f  brake: %.2f  steer: %5.2f" % (gas, brake, steer_torque)
     # steer torque is converted back to CAN reference (positive when steering right)
@@ -151,7 +155,7 @@ def data_send(kb, frame, sendcan, accord, crv, GAS_MAX, BRAKE_MAX, STEER_MAX, GA
 
 def main():
     # keyboard
-    kb = keyboardCatcher()
+    kb = keyboardCatcher(step=10)
 
     # loop rate 0.01s
     rate = 100

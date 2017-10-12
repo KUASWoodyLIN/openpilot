@@ -5,15 +5,33 @@ from selfdrive.boardd.boardd import can_capnp_to_can_list
 from selfdrive.services import service_list
 from selfdrive.test.plant.plant import get_car_can_parser, car_plant
 
+import matplotlib.pyplot as plt
+import numpy as np
+
+class plt_carstate():
+    def __init__(self):
+        gas_array = []
+        brake_array = []
+        steer_array = []
+        speed_array = []
+        frame = 0
+        time = np.linspace(0, 10, 1001)
+
+
+
+
 def main():
 
     rate = 100
     context = zmq.Context()
     sendcan = messaging.sub_sock(context, service_list['sendcan'].port)
 
-    cp = get_car_can_parser()
-
-    rk = Ratekeeper(rate, print_delay_threshold=100)
+    gas_array = []
+    brake_array = []
+    steer_array = []
+    speed_array = []
+    frame = 0
+    time = np.linspace(0, 10, 1001)
 
     # init
     distance, distance_prev = 0., 0.
@@ -22,6 +40,9 @@ def main():
     grade = 0.0
     ts = 1./rate
 
+    cp = get_car_can_parser()
+
+    rk = Ratekeeper(rate, print_delay_threshold=100)
 
     while True:
         # ******** get messages sent to the car ********
@@ -63,6 +84,36 @@ def main():
         if (rk.frame % (rate / 5)) == 0:
           print "gas: %.2f  brake: %.2f  steer: %5.2f  %6.2f m  %6.2f m/s  %6.2f m/s2  %.2f ang" \
                 % (gas, brake, steer_torque, distance, speed, acceleration, angle_steer)
+
+
+        # plot
+        # ctrl + /
+        gas_array.append(gas)
+        brake_array.append(brake)
+        steer_array.append(steer_torque)
+        speed_array.append(speed)
+        if frame % 1001 == 1000:
+            plt.subplot(2, 1, 1)
+            plt.plot(time, np.array(gas_array), 'g')
+            plt.plot(time, np.array(brake_array), 'r')
+            plt.scatter(time, np.array(gas_array), c='g')
+            plt.scatter(time, np.array(brake_array), c='r')
+            plt.xlabel('Time [s]')
+            plt.ylabel('Pedal')
+            plt.legend(['Gas pedal', 'Brake pedal'], loc=0)
+            plt.grid()
+
+            plt.subplot(2, 1, 2)
+            plt.scatter(time, np.array(speed_array), c='b')
+            plt.plot(time, np.array(speed_array), 'b')
+            plt.xlabel('Time [s]')
+            plt.ylabel('m/s')
+            plt.grid()
+
+            plt.show()
+            exit()
+        frame = frame + 1
+
 
         rk.keep_time()
 
