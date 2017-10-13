@@ -47,23 +47,23 @@ class keyboardCatcher():
         if self.brake_press != 0:
             self.brake_press = 0
         else:
-            self.gas_press += 0.02
+            self.gas_press += 0.04
             self.brake_press = 0
         self.display_info('W')
 
     def car_steering(self, angle):
         if angle:
-            self.steering_angle += 0.03
+            self.steering_angle += 0.05
             self.display_info('D')
         else:
-            self.steering_angle -= 0.03
+            self.steering_angle -= 0.05
             self.display_info('A')
 
     def car_brake(self):
         if self.gas_press != 0:
             self.gas_press = 0
         else:
-            self.brake_press += 0.02
+            self.brake_press += 0.04
             self.gas_press = 0
         self.display_info('S')
 

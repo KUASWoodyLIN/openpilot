@@ -8,17 +8,43 @@ from selfdrive.test.plant.plant import get_car_can_parser, car_plant
 import matplotlib.pyplot as plt
 import numpy as np
 
-class plt_carstate():
-    def __init__(self):
-        gas_array = []
-        brake_array = []
-        steer_array = []
-        speed_array = []
-        frame = 0
-        time = np.linspace(0, 10, 1001)
+class carstate_plt():
+    def __init__(self, duration=1000):
+        self.gas_array = []
+        self.brake_array = []
+        self.steer_array = []
+        self.speed_array = []
+        self.frame = 0
+        self.duration = duration
+        self.time = np.linspace(0, duration/100, duration+1)
 
+    def plt(self, gas, brake, steer_torque, speed):
+        self.gas_array.append(gas)
+        self.brake_array.append(brake)
+        self.steer_array.append(steer_torque)
+        self.speed_array.append(speed)
+        if self.frame % (self.duration+1) == self.duration:
+            plt.subplot(2, 1, 1)
+            plt.plot(self.time, np.array(self.gas_array), 'g')
+            plt.plot(self.time, np.array(self.brake_array), 'r')
+            plt.scatter(self.time, np.array(self.gas_array), c='g')
+            plt.scatter(self.time, np.array(self.brake_array), c='r')
+            plt.xlabel('Time [s]')
+            plt.ylabel('Pedal')
+            plt.legend(['Gas pedal', 'Brake pedal'], loc=0)
+            plt.grid()
 
+            plt.subplot(2, 1, 2)
+            plt.scatter(self.time, np.array(self.speed_array), c='b')
+            plt.plot(self.time, np.array(self.speed_array), 'b')
+            plt.xlabel('Time [s]')
+            plt.ylabel('m/s')
+            plt.legend(['speed'], loc=0)
+            plt.grid()
 
+            plt.show()
+            exit()
+        self.frame = self.frame + 1
 
 def main():
 
@@ -26,12 +52,7 @@ def main():
     context = zmq.Context()
     sendcan = messaging.sub_sock(context, service_list['sendcan'].port)
 
-    gas_array = []
-    brake_array = []
-    steer_array = []
-    speed_array = []
-    frame = 0
-    time = np.linspace(0, 10, 1001)
+    cs_plt = carstate_plt(2000)
 
     # init
     distance, distance_prev = 0., 0.
@@ -85,35 +106,8 @@ def main():
           print "gas: %.2f  brake: %.2f  steer: %5.2f  %6.2f m  %6.2f m/s  %6.2f m/s2  %.2f ang" \
                 % (gas, brake, steer_torque, distance, speed, acceleration, angle_steer)
 
-
-        # plot
-        # ctrl + /
-        gas_array.append(gas)
-        brake_array.append(brake)
-        steer_array.append(steer_torque)
-        speed_array.append(speed)
-        if frame % 1001 == 1000:
-            plt.subplot(2, 1, 1)
-            plt.plot(time, np.array(gas_array), 'g')
-            plt.plot(time, np.array(brake_array), 'r')
-            plt.scatter(time, np.array(gas_array), c='g')
-            plt.scatter(time, np.array(brake_array), c='r')
-            plt.xlabel('Time [s]')
-            plt.ylabel('Pedal')
-            plt.legend(['Gas pedal', 'Brake pedal'], loc=0)
-            plt.grid()
-
-            plt.subplot(2, 1, 2)
-            plt.scatter(time, np.array(speed_array), c='b')
-            plt.plot(time, np.array(speed_array), 'b')
-            plt.xlabel('Time [s]')
-            plt.ylabel('m/s')
-            plt.grid()
-
-            plt.show()
-            exit()
-        frame = frame + 1
-
+        # ******** plot the Car state ********
+        cs_plt.plt(gas, brake, steer_torque, speed)
 
         rk.keep_time()
 
