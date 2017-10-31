@@ -40,10 +40,13 @@ def process_a_lead(a_lead):
   a_lead = min(a_lead + a_lead_threshold, 0)
   return a_lead
 
-def calc_desired_distance(v_lead):
+def calc_desired_distance(v_lead, object):
   #*** compute desired distance ***
   t_gap = 1.7  # good to be far away
-  d_offset = 4 # distance when at zero speed
+  if object:
+    d_offset = 4 # distance when at zero speed
+  else:
+    d_offset = 1 # distance when at zero speed
   return d_offset + v_lead * t_gap
 
 
@@ -221,7 +224,7 @@ def calc_jerk_factor(d_lead, v_rel):
 
 MAX_SPEED_POSSIBLE = 55.
 
-def compute_speed_with_leads(v_ego, angle_steers, v_pid, l1, l2, CP):
+def compute_speed_with_leads(v_ego, angle_steers, v_pid, l1, l2, ld, CP):
   # drive limits
   # TODO: Make lims function of speed (more aggressive at low speed).
   a_lim = [-3., 1.5]
@@ -244,17 +247,16 @@ def compute_speed_with_leads(v_ego, angle_steers, v_pid, l1, l2, CP):
     a_lead_p = process_a_lead(l1.aLeadK)
 
     #*** compute desired distance ***
-    d_des = calc_desired_distance(l1.vLead)
+    d_des = calc_desired_distance(l1.vLead, True)
 
     #*** compute desired speed ***
     v_target_lead, v_coast = calc_desired_speed(l1.dRel, d_des, l1.vLead, a_lead_p)
-
     if l2 is not None and l2.status:
       #*** process noisy a_lead signal from radar processing ***
       a_lead_p2 = process_a_lead(l2.aLeadK)
 
       #*** compute desired distance ***
-      d_des2 = calc_desired_distance(l2.vLead)
+      d_des2 = calc_desired_distance(l2.vLead, True)
 
       #*** compute desired speed ***
       v_target_lead2, v_coast2 = calc_desired_speed(l2.dRel, d_des2, l2.vLead, a_lead_p2)
@@ -264,8 +266,23 @@ def compute_speed_with_leads(v_ego, angle_steers, v_pid, l1, l2, CP):
         l1 = l2
         d_des, a_lead_p, v_target_lead, v_coast = d_des2, a_lead_p2, v_target_lead2, v_coast2
 
-    # l1 is the main lead now
+  # l1 is the main lead now
+  if ld is not None and ld.status:
+    # *** process noisy a_lead signal from radar processing ***
+    a_lead_p3 = process_a_lead(ld.aLead)
 
+    # *** compute desired distance ***
+    d_des3 = calc_desired_distance(ld.vLead, False)
+
+    # *** compute desired speed ***
+    v_target_lead3, v_coast3 = calc_desired_speed(ld.dRel, d_des3, ld.vLead, a_lead_p3)
+    # if l1 is not None:
+    #   print l1.status
+    if v_target_lead3 < v_target_lead:
+      l1 = ld
+      d_des, a_lead_p, v_target_lead, v_coast = d_des3, a_lead_p3, v_target_lead3, v_coast3
+
+  if (ld is not None and ld.status) or (l1 is not None and l1.status):
     #*** compute accel limits ***
     a_target1, a_pcm1 = calc_acc_accel_limits(l1.dRel, d_des, v_ego, v_pid, l1.vLead,
                                      l1.vRel, a_lead_p, v_target_lead, v_coast, a_target, a_pcm)
@@ -283,12 +300,15 @@ def compute_speed_with_leads(v_ego, angle_steers, v_pid, l1, l2, CP):
 
 class AdaptiveCruise(object):
   def __init__(self):
-    self.l1, self.l2 = None, None
-  def update(self, v_ego, angle_steers, v_pid, CP, l20):
+    self.l1, self.l2, self.ld = None, None, None
+  def update(self, v_ego, angle_steers, v_pid, CP, l20, lead):
     if l20 is not None:
       self.l1 = l20.live20.leadOne
       self.l2 = l20.live20.leadTwo
+    if lead is not None:
+      self.ld = lead.vision
+
 
     self.v_target_lead, self.a_target, self.a_pcm, self.jerk_factor = \
-      compute_speed_with_leads(v_ego, angle_steers, v_pid, self.l1, self.l2, CP)
+      compute_speed_with_leads(v_ego, angle_steers, v_pid, self.l1, self.l2, self.ld, CP)
     self.has_lead = self.v_target_lead != MAX_SPEED_POSSIBLE

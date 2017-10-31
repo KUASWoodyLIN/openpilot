@@ -1194,6 +1194,23 @@ struct LiveMpcData {
   delta @3 :List(Float32);
 }
 
+struct VisionData {
+
+  dRel @0 :Float32;
+  yRel @1 :Float32;
+  vRel @2 :Float32;
+  aRel @3 :Float32;
+  vLead @4 :Float32;
+  aLead @5 :Float32;
+  dPath @6 :Float32;
+  vLat @7 :Float32;
+  vLeadK @8 :Float32;
+  aLeadK @9 :Float32;
+  fcw @10 :Bool;
+  status @11 :Bool;
+
+}
+
 struct Event {
   # in nanoseconds?
   logMonoTime @0 :UInt64;
@@ -1235,5 +1252,6 @@ struct Event {
     ubloxGnss @34 :UbloxGnss;
     clocks @35 :Clocks;
     liveMpc @36 :LiveMpcData;
+    vision @37 :VisionData;
   }
 }

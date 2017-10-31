@@ -90,18 +90,24 @@ def to_3s_byte(x):
 class Plant(object):
   messaging_initialized = False
 
-  def __init__(self, lead_relevancy=False, rate=100, speed=0.0, distance_lead=2.0):
+  def __init__(self, lead_relevancy=False, person_relevancy=False, rate=100, speed=0.0, distance_lead=2.0, distance_person=2.0):
     self.rate = rate
     self.civic = False
     self.brake_only = False
 
     if not Plant.messaging_initialized:
       context = zmq.Context()
+
+      # pub
       Plant.logcan = messaging.pub_sock(context, service_list['can'].port)
-      Plant.sendcan = messaging.sub_sock(context, service_list['sendcan'].port)
       Plant.model = messaging.pub_sock(context, service_list['model'].port)
       Plant.cal = messaging.pub_sock(context, service_list['liveCalibration'].port)
+      Plant.vision = messaging.pub_sock(context, service_list['vision'].port)
+
+      # sub
+      Plant.sendcan = messaging.sub_sock(context, service_list['sendcan'].port)
       Plant.live100 = messaging.sub_sock(context, service_list['live100'].port)
+
       Plant.messaging_initialized = True
 
     self.angle_steer = 0.
@@ -124,9 +130,14 @@ class Plant(object):
     self.steer_torque, self.v_cruise, self.acc_status = 0, 0, 0  # v_cruise is reported from can, not the one used for controls
 
     self.lead_relevancy = lead_relevancy
+    self.person_relevancy = person_relevancy
 
     # lead car
-    self.distance_lead, self.distance_lead_prev = distance_lead , distance_lead
+    self.distance_lead, self.distance_lead_prev = distance_lead, distance_lead
+
+    # person distance
+    self.distance_person, self.distance_person_prev = distance_person, distance_person
+    self.v_person_prev = 0
 
     self.rk = Ratekeeper(rate, print_delay_threshold=100)
     self.ts = 1./rate
@@ -138,7 +149,7 @@ class Plant(object):
     Plant.model.close()
 
   def speed_sensor(self, speed):
-    if speed<0.3:
+    if speed < 0.3:
       return 0
     else:
       return speed
@@ -146,7 +157,7 @@ class Plant(object):
   def current_time(self):
     return float(self.rk.frame) / self.rate
 
-  def step(self, v_lead=0.0, cruise_buttons=None, grade=0.0, publish_model = True):
+  def step(self, v_lead=0.0, v_person=0.0, cruise_buttons=None, grade=0.0, publish_model=True):
     gen_dbc, gen_signals, gen_checks = get_can_signals(CP)
     sgs = [s[0] for s in gen_signals]
     msgs = [s[1] for s in gen_signals]
@@ -182,6 +193,8 @@ class Plant(object):
       steer_torque = 0.0
 
     distance_lead = self.distance_lead_prev + v_lead * self.ts
+    acc_person = (v_person - self.v_person_prev) / self.ts
+    distance_person = self.distance_person_prev + v_person * self.ts
 
     # ******** run the car ********
     speed, acceleration = car_plant(self.distance_prev, self.speed_prev, grade, gas, brake)
@@ -205,10 +218,20 @@ class Plant(object):
       a_rel = 0
     lateral_pos_rel = 0.
 
+    # *** vision model ***
+    if self.person_relevancy:
+      person_d_rel = distance_person - distance if distance_person - distance > 0 else 0
+      person_v_rel = v_person - speed
+    else:
+      person_d_rel = 201.
+      person_v_rel = 0.
+      person_a_rel = 0.
+
     # print at 5hz
     if (self.rk.frame%(self.rate/5)) == 0:
       print "%6.2f m  %6.2f m/s  %6.2f m/s2   %.2f ang   gas: %.2f  brake: %.2f  steer: %5.2f     lead_rel: %6.2f m  %6.2f m/s" % (distance, speed, acceleration, self.angle_steer, gas, brake, steer_torque, d_rel, v_rel)
-
+      print "distance_lead_prev %f  distance_lead %f  d_rel %f" % (self.distance_lead_prev, distance_lead, d_rel)
+      print "distance_person_prev %f  distance_person %f  person_d_rel %f" % (self.distance_person_prev, distance_person, person_d_rel)
     # ******** publish the car ********
     vls = [self.speed_sensor(speed), self.speed_sensor(speed), self.speed_sensor(speed), self.speed_sensor(speed), self.speed_sensor(speed),
            self.angle_steer, 0, self.gear_choice, speed!=0,
@@ -266,17 +289,36 @@ class Plant(object):
       Plant.model.send(md.to_bytes())
       Plant.cal.send(cal.to_bytes())
 
+    # ******** publish a fake vision ********
+    if self.person_relevancy:
+      vs = messaging.new_message()
+      vs.init('vision')
+      vs.vision.dRel = person_d_rel
+      vs.vision.vRel = person_v_rel
+      vs.vision.vLead = v_person
+      vs.vision.aLead = acc_person
+      vs.vision.status = True
+      Plant.vision.send(vs.to_bytes())
+    else:
+      vs = messaging.new_message()
+      vs.init('vision')
+      vs.vision.status = False
+      Plant.vision.send(vs.to_bytes())
+
     # ******** update prevs ********
     self.speed = speed
     self.distance = distance
     self.distance_lead = distance_lead
+    self.distance_person = distance_person
 
     self.speed_prev = speed
     self.distance_prev = distance
     self.distance_lead_prev = distance_lead
+    self.distance_person_prev = distance_person
+    self.v_person_prev = v_person
 
     self.rk.keep_time()
-    return (distance, speed, acceleration, distance_lead, brake, gas, steer_torque, live_msgs)
+    return (distance, speed, acceleration, distance_lead, distance_person, brake, gas, steer_torque, live_msgs)
 
 # simple engage in standalone mode
 def plant_thread(rate=100):
@@ -287,6 +329,7 @@ def plant_thread(rate=100):
     else:
       cruise_buttons = 0
     plant.step()
+
 
 if __name__ == "__main__":
   plant_thread()

@@ -48,7 +48,7 @@ liveMpc: [8035, true]
 
 testModel: [8040, false]
 
-parking: [8041, true]
+vision: [8041, true]
 
 # manager -- base process to manage starting and stopping of all others
 #   subscribes: health

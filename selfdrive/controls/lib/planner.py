@@ -17,15 +17,19 @@ class Planner(object):
     self.CP = CP
     self.live20 = messaging.sub_sock(context, service_list['live20'].port)
     self.model = messaging.sub_sock(context, service_list['model'].port)
+    self.vision = messaging.sub_sock(context, service_list['vision'].port)
 
     self.plan = messaging.pub_sock(context, service_list['plan'].port)
 
     self.last_md_ts = 0
     self.last_l20_ts = 0
+    self.last_vision_ts = 0
     self.last_model = 0.
     self.last_l20 = 0.
+    self.last_vision = 0.
     self.model_dead = True
     self.radar_dead = True
+    self.vision_dead = True
     self.radar_errors = []
 
     self.PP = PathPlanner()
@@ -35,6 +39,14 @@ class Planner(object):
   # this runs whenever we get a packet that can change the plan
   def update(self, CS, LoC):
     cur_time = sec_since_boot()
+
+    lead = messaging.recv_sock(self.vision)
+    if lead is not None:
+      self.last_vision_ts = lead.logMonoTime
+      self.last_vision = cur_time
+      self.vision_dead = False
+    if cur_time - self.last_vision > 0.5:
+      self.vision_dead = True
 
     md = messaging.recv_sock(self.model)
     if md is not None:
@@ -57,7 +69,7 @@ class Planner(object):
 
     # LoC.v_pid -> CS.vEgo
     # TODO: is this change okay?
-    self.AC.update(CS.vEgo, CS.steeringAngle, LoC.v_pid, self.CP, l20)
+    self.AC.update(CS.vEgo, CS.steeringAngle, LoC.v_pid, self.CP, l20, lead)
 
     # **** send the plan ****
     plan_send = messaging.new_message()

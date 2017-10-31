@@ -10,12 +10,16 @@ class Maneuver(object):
     # Was tempted to make a builder class
     self.distance_lead = kwargs.get("initial_distance_lead", 200.0)
     self.speed = kwargs.get("initial_speed", 0.0)
-    self.lead_relevancy = kwargs.get("lead_relevancy", 0) 
+    self.lead_relevancy = kwargs.get("lead_relevancy", 0)
+    self.person_relevancy = kwargs.get("person_relevancy", 0)
+    self.distance_person = kwargs.get("initial_distance_person", 200.0)
 
     self.grade_values = kwargs.get("grade_values", [0.0, 0.0])
     self.grade_breakpoints = kwargs.get("grade_breakpoints", [0.0, duration])
     self.speed_lead_values = kwargs.get("speed_lead_values", [0.0, 0.0])
     self.speed_lead_breakpoints = kwargs.get("speed_lead_breakpoints", [0.0, duration])
+    self.speed_person_values = kwargs.get("speed_person_values", [0.0, 0.0])
+    self.speed_person_breakpoints = kwargs.get("speed_person_breakpoints", [0.0, duration])
 
     self.cruise_button_presses = kwargs.get("cruise_button_presses", [])
 
@@ -26,8 +30,10 @@ class Maneuver(object):
     """runs the plant sim and returns (score, run_data)"""
     plant = Plant(
       lead_relevancy = self.lead_relevancy,
+      person_relevancy = self.person_relevancy,
       speed = self.speed,
-      distance_lead = self.distance_lead
+      distance_lead = self.distance_lead,
+      distance_person = self.distance_person
     )
 
     last_live100 = None
@@ -44,13 +50,19 @@ class Maneuver(object):
     
       grade = np.interp(plant.current_time(), self.grade_breakpoints, self.grade_values)
       speed_lead = np.interp(plant.current_time(), self.speed_lead_breakpoints, self.speed_lead_values)
+      speed_person = np.interp(plant.current_time(), self.speed_person_breakpoints, self.speed_person_values)
 
-      distance, speed, acceleration, distance_lead, brake, gas, steer_torque, live100 = plant.step(speed_lead, current_button, grade)
+      distance, speed, acceleration, distance_lead, distance_person, brake, gas, steer_torque, live100 = plant.step(speed_lead, speed_person, current_button, grade)
       if live100:
         last_live100 = live100[-1]
 
-      d_rel = distance_lead - distance if self.lead_relevancy else 200. 
-      v_rel = speed_lead - speed if self.lead_relevancy else 0. 
+      if self.lead_relevancy:
+        d_rel = distance_lead - distance
+      elif self.person_relevancy:
+        d_rel = distance_person - distance
+      else:
+        d_rel = 200.
+      v_rel = speed_lead - speed if self.lead_relevancy else 0.
 
       if last_live100:
         # print last_live100
