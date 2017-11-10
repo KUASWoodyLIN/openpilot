@@ -6,13 +6,14 @@ os.environ['NOCRASH'] = '1'
 import time
 import unittest
 import shutil
-
 import matplotlib
 matplotlib.use('svg')
 
 from selfdrive.config import Conversions as CV, CruiseButtons as CB
 from selfdrive.test.plant.maneuver import Maneuver
 import selfdrive.manager as manager
+from common.params import Params
+
 
 def create_dir(path):
   try:
@@ -129,6 +130,8 @@ class LongitudinalControl(unittest.TestCase):
     setup_output()
 
     shutil.rmtree('/data/params', ignore_errors=True)
+    params = Params()
+    params.put("Passive", "1" if os.getenv("PASSIVE") else "0")
 
     manager.gctx = {}
     manager.prepare_managed_process('radard')

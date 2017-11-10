@@ -136,6 +136,7 @@ typedef struct UIState {
   int awake_timeout;
 
   bool is_metric;
+  bool passive;
 } UIState;
 
 static void set_awake(UIState *s, bool awake) {
@@ -281,6 +282,15 @@ static void ui_init(UIState *s) {
   glDisable(GL_DEPTH_TEST);
 
   assert(glGetError() == GL_NO_ERROR);
+
+  {
+    char *value;
+    const int result = read_db_value(NULL, "Passive", &value, NULL);
+    if (result == 0) {
+      s->passive = value[0] == '1';
+      free(value);
+    }
+  }
 }
 
 
@@ -333,6 +343,7 @@ static void ui_init_vision(UIState *s, const VisionStreamBufs back_bufs,
 
   s->scene = (UIScene){
       .frontview = 0,
+      .cal_status = CALIBRATION_CALIBRATED,
       .transformed_width = ui_info.transformed_width,
       .transformed_height = ui_info.transformed_height,
       .front_box_x = ui_info.front_box_x,
@@ -700,25 +711,9 @@ static void ui_draw_world(UIState *s) {
     return;
   }
 
-  /******************************************
-   * Add background rect so it's easier to see in 
-   * light background scenes 
-   ******************************************/
-  // Draw background around speed text
-
-  // Left side
-  ui_draw_rounded_rect(s->vg, -15, 0, 570, 180, 20, nvgRGBA(10,10,10,170));
-
-  // Right side
-  ui_draw_rounded_rect(s->vg, 1920-530, 0, 150, 180, 20, nvgRGBA(10,10,10,170));
-  /******************************************/
-
   draw_steering(s, scene->v_ego, scene->angle_steers);
 
-  // draw paths
   if ((nanos_since_boot() - scene->model_ts) < 1000000000ULL) {
-    draw_path(s, scene->model.path.points, 0.0f, nvgRGBA(128, 0, 255, 255));
-
     draw_model_path(
         s, scene->model.left_lane,
         nvgRGBA(0, (int)(255 * scene->model.left_lane.prob), 0, 128));
@@ -726,19 +721,19 @@ static void ui_draw_world(UIState *s) {
         s, scene->model.right_lane,
         nvgRGBA(0, (int)(255 * scene->model.right_lane.prob), 0, 128));
 
-    draw_x_y(s, scene->mpc_x, scene->mpc_y, 50, nvgRGBA(255, 0, 0, 255));
+    // draw paths
+    if (!s->passive) {
+      draw_path(s, scene->model.path.points, 0.0f, nvgRGBA(128, 0, 255, 255));
+
+      draw_x_y(s, scene->mpc_x, scene->mpc_y, 50, nvgRGBA(255, 0, 0, 255));
+    }
   }
 
   if (scene->lead_status) {
     char radar_str[16];
 
-    /******************************************
-     * Add background rect so it's easier to see in 
-     * light background scenes 
-     ******************************************/
     // Draw background for radar text
     ui_draw_rounded_rect(s->vg, 578, 0, 195, 180, 20, nvgRGBA(10,10,10,170));
-    /******************************************/
 
     if (s->is_metric) {
       int lead_v_rel = (int)(3.6 * scene->lead_v_rel);
@@ -789,37 +784,47 @@ static void ui_draw_vision(UIState *s) {
     float defaultfontsize = 128.0f;
     float labelfontsize = 65.0f;
 
-    if (scene->engaged) {
-      nvgFillColor(s->vg, nvgRGBA(255, 128, 0, 192));
+    if (!s->passive) {
 
-      // Add label
-      nvgFontSize(s->vg, labelfontsize);
-      nvgTextAlign(s->vg, NVG_ALIGN_LEFT | NVG_ALIGN_BASELINE);
-      nvgText(s->vg, 20, 175-30, "OpenPilot: On", NULL);
-    } else {
-      nvgFillColor(s->vg, nvgRGBA(195, 195, 195, 192));
+      // background
+      ui_draw_rounded_rect(s->vg, -15, 0, 570, 180, 20, nvgRGBA(10,10,10,170));
 
-      // Add label
-      nvgFontSize(s->vg, labelfontsize);
-      nvgTextAlign(s->vg, NVG_ALIGN_LEFT | NVG_ALIGN_BASELINE);
-      nvgText(s->vg, 20, 175-30, "OpenPilot: Off", NULL);
-    }
+      if (scene->engaged) {
+        nvgFillColor(s->vg, nvgRGBA(255, 128, 0, 192));
 
-    nvgFontSize(s->vg, defaultfontsize);
-    if (scene->v_cruise != 255 && scene->v_cruise != 0) {
-      if (s->is_metric) {
-        snprintf(speed_str, sizeof(speed_str), "%3d KPH",
-                 (int)(scene->v_cruise + 0.5));
+        // Add label
+        nvgFontSize(s->vg, labelfontsize);
+        nvgTextAlign(s->vg, NVG_ALIGN_LEFT | NVG_ALIGN_BASELINE);
+        nvgText(s->vg, 20, 175-30, "OpenPilot: On", NULL);
       } else {
-        /* Convert KPH to MPH. Using an approximated mph to kph 
-        conversion factor of 1.609 because this is what the Honda
-        hud seems to be using */
-        snprintf(speed_str, sizeof(speed_str), "%3d MPH",
-                 (int)(scene->v_cruise * 0.621504 + 0.5));
+        nvgFillColor(s->vg, nvgRGBA(195, 195, 195, 192));
+
+        // Add label
+        nvgFontSize(s->vg, labelfontsize);
+        nvgTextAlign(s->vg, NVG_ALIGN_LEFT | NVG_ALIGN_BASELINE);
+        nvgText(s->vg, 20, 175-30, "OpenPilot: Off", NULL);
       }
-      nvgTextAlign(s->vg, NVG_ALIGN_RIGHT | NVG_ALIGN_BASELINE);
-      nvgText(s->vg, 480, 95, speed_str, NULL);
+
+      nvgFontSize(s->vg, defaultfontsize);
+      if (scene->v_cruise != 255 && scene->v_cruise != 0) {
+        if (s->is_metric) {
+          snprintf(speed_str, sizeof(speed_str), "%3d KPH",
+                   (int)(scene->v_cruise + 0.5));
+        } else {
+          /* Convert KPH to MPH. Using an approximated mph to kph 
+          conversion factor of 1.609 because this is what the Honda
+          hud seems to be using */
+          snprintf(speed_str, sizeof(speed_str), "%3d MPH",
+                   (int)(scene->v_cruise * 0.621504 + 0.5));
+        }
+        nvgTextAlign(s->vg, NVG_ALIGN_RIGHT | NVG_ALIGN_BASELINE);
+        nvgText(s->vg, 480, 95, speed_str, NULL);
+      }
     }
+
+
+    // speed background
+    ui_draw_rounded_rect(s->vg, 1920-530, 0, 150, 180, 20, nvgRGBA(10,10,10,170));
 
     // Add label
     nvgFontSize(s->vg, labelfontsize);
@@ -854,7 +859,7 @@ static void ui_draw_vision(UIState *s) {
     }
 
     // Draw calibration progress (if needed)
-    if (scene->cal_status == CALIBRATION_UNCALIBRATED && scene->cal_perc > 0) {
+    if (scene->cal_status == CALIBRATION_UNCALIBRATED) {
       int rec_width = 1020;
       int x_pos = 470;
       nvgBeginPath(s->vg);

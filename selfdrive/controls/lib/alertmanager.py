@@ -74,7 +74,7 @@ class AlertManager(object):
         PT.LOW, "steerRequired", "chimeDouble", .4, 2., 3.),
 
     "preDriverDistracted": Alert(
-        "Take Control ", 
+        "Take Control", 
         "User Distracted", 
         PT.LOW, "steerRequired", "chimeDouble", .4, 2., 3.),
 
@@ -97,6 +97,11 @@ class AlertManager(object):
         "Comma Unavailable", 
         "Steer Temporary Unavailable", 
         PT.LOW, None, "chimeDouble", .4, 0., 3.),
+
+    "manualRestart": Alert(
+        "Take Control",
+        "Resume Driving Manually",
+        PT.LOW, None, None, .0, 0., 1.),
 
     # Non-entry only alerts
     "wrongCarModeNoEntry": Alert(
@@ -132,6 +137,11 @@ class AlertManager(object):
     "parkBrakeNoEntry": Alert(
         "Comma Unavailable", 
         "Park Brake Engaged", 
+        PT.LOW, None, "chimeDouble", .4, 2., 3.),
+
+    "lowSpeedLockoutNoEntry": Alert(
+        "Comma Unavailable",
+        "Cruise Fault: Restart the Car",
         PT.LOW, None, "chimeDouble", .4, 2., 3.),
 
     # Cancellation alerts causing disabling
@@ -231,6 +241,11 @@ class AlertManager(object):
         "No Close Lead", 
         PT.HIGH, None, "chimeDouble", .4, 2., 3.),
 
+    "speedTooLow": Alert(
+        "Comma Canceled",
+        "Speed Too Low", 
+        PT.HIGH, None, "chimeDouble", .4, 2., 3.),
+
     # Cancellation alerts causing non-entry
     "overheatNoEntry": Alert(
         "Comma Unavailable", 
@@ -249,7 +264,7 @@ class AlertManager(object):
 
     "calibrationInProgressNoEntry": Alert(
         "Comma Unavailable", 
-        "Calibration in Progress: ", 
+        "Calibration in Progress", 
         PT.LOW, None, "chimeDouble", .4, 2., 3.),
 
     "doorOpenNoEntry": Alert(
@@ -331,7 +346,6 @@ class AlertManager(object):
   def __init__(self):
     self.activealerts = []
     self.current_alert = None
-    self.add("startup", False)
 
   def alertPresent(self):
     return len(self.activealerts) > 0
