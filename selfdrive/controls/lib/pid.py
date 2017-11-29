@@ -92,7 +92,6 @@ class PIController(object):
     control = self.p + f + self.i
     if self.convert is not None:
       control = self.convert(control, speed=self.speed)
-
     if check_saturation:
       self.saturated = self._check_saturation(control, override, error)
     else:

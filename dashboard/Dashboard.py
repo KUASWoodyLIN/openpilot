@@ -1,3 +1,8 @@
+import sys
+import os
+path, panda_path = os.path.split(os.path.dirname(__file__))
+sys.path.append(path)
+
 import zmq
 from common.realtime import Ratekeeper
 from selfdrive import messaging
@@ -30,19 +35,19 @@ def main():
             can_msgs.extend(can_capnp_to_can_list(a.sendcan, [0, 2]))
         cp.update_can(can_msgs)
         if cp.vl[0x1fa]['COMPUTER_BRAKE_REQUEST']:
-          brake = cp.vl[0x1fa]['COMPUTER_BRAKE']
+            brake = cp.vl[0x1fa]['COMPUTER_BRAKE']
         else:
-          brake = 0.0
+            brake = 0.0
 
         if cp.vl[0x200]['GAS_COMMAND'] > 0:
-          gas = cp.vl[0x200]['GAS_COMMAND'] / 256.0
+            gas = cp.vl[0x200]['GAS_COMMAND'] / 256.0
         else:
-          gas = 0.0
+            gas = 0.0
 
         if cp.vl[0xe4]['STEER_TORQUE_REQUEST']:
-          steer_torque = cp.vl[0xe4]['STEER_TORQUE']*1.0/0xf00
+            steer_torque = cp.vl[0xe4]['STEER_TORQUE']*1.0/0xf00
         else:
-          steer_torque = 0.0
+            steer_torque = 0.0
 
         # ******** run the car ********
         speed, acceleration = car_plant(distance_prev, speed_prev, grade, gas, brake)
@@ -60,9 +65,10 @@ def main():
         distance_prev = distance
 
         # ******** print message ********
-        if (rk.frame % (rate / 5)) == 0:
-          print "gas: %.2f  brake: %.2f  steer: %5.2f  %6.2f m  %6.2f m/s  %6.2f m/s2  %.2f ang" \
-                % (gas, brake, steer_torque, distance, speed, acceleration, angle_steer)
+        if (rk.frame % (rate / 1)) == 0:
+            print "gas: %.2f  brake: %.2f  steer: %5.2f  %6.2f m  %6.2f m/s  %6.2f m/s2  %.2f ang"\
+                  % (gas, brake, steer_torque, distance, speed, acceleration, angle_steer)
+
 
         rk.keep_time()
 

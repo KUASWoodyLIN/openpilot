@@ -1,3 +1,8 @@
+import sys
+import os
+path, panda_path = os.path.split(os.path.dirname(__file__))
+sys.path.append(path)
+
 import zmq
 import selfdrive.messaging as messaging
 from selfdrive.services import service_list

@@ -46,7 +46,7 @@ def calc_desired_distance(v_lead, object):
   if object:
     d_offset = 4 # distance when at zero speed
   else:
-    d_offset = 1 # distance when at zero speed
+    d_offset = 0 # distance when at zero speed
   return d_offset + v_lead * t_gap
 
 

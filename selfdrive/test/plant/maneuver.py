@@ -29,11 +29,11 @@ class Maneuver(object):
   def evaluate(self):
     """runs the plant sim and returns (score, run_data)"""
     plant = Plant(
-      lead_relevancy = self.lead_relevancy,
-      person_relevancy = self.person_relevancy,
-      speed = self.speed,
-      distance_lead = self.distance_lead,
-      distance_person = self.distance_person
+      lead_relevancy=self.lead_relevancy,
+      person_relevancy=self.person_relevancy,
+      speed=self.speed,
+      distance_lead=self.distance_lead,
+      distance_person=self.distance_person
     )
 
     last_live100 = None

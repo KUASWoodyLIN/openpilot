@@ -23,65 +23,77 @@ def create_dir(path):
 
 maneuvers = [
   Maneuver(
-    'approaching a 0mph Person while cruising at 10kph from 50m away',
-    duration=30.,
-    initial_speed=10. * CV.KPH_TO_MS,
-    person_relevancy=True,
-    initial_distance_person=50.,
-    speed_person_values=[0. * CV.MPH_TO_MS, 0. * CV.MPH_TO_MS],
-    speed_person_breakpoints=[0., 100.],
-    cruise_button_presses=[(CB.DECEL_SET, 0.3), (0, 0.4)]
-  ),
-  Maneuver(
-    'approaching a 0mph Person while cruising at 10kph from 50m away',
-    duration=30.,
-    initial_speed=0. * CV.KPH_TO_MS,
-    person_relevancy=True,
-    initial_distance_person=50.,
-    speed_person_values=[0. * CV.MPH_TO_MS, 0. * CV.MPH_TO_MS],
-    speed_person_breakpoints=[0., 100.],
-    cruise_button_presses=[(CB.DECEL_SET, 0.3), (0, 0.4)]
-  ),
-  Maneuver(
-    'approaching a 0mph Person while cruising at 10kph from 40m away',
-    duration=30.,
-    initial_speed=0. * CV.KPH_TO_MS,
-    person_relevancy=True,
-    initial_distance_person=40.,
-    speed_person_values=[0. * CV.MPH_TO_MS, 0. * CV.MPH_TO_MS],
-    speed_person_breakpoints=[0., 100.],
-    cruise_button_presses=[(CB.DECEL_SET, 0.3), (0, 0.4)]
-  ),
-  Maneuver(
-    'approaching a 0mph Person while cruising at 10kph from 30m away',
-    duration=30.,
-    initial_speed=0. * CV.KPH_TO_MS,
-    person_relevancy=True,
-    initial_distance_person=30.,
-    speed_person_values=[0. * CV.MPH_TO_MS, 0. * CV.MPH_TO_MS],
-    speed_person_breakpoints=[0., 100.],
-    cruise_button_presses=[(CB.DECEL_SET, 0.3), (0, 0.4)]
-  ),
-  Maneuver(
-    'approaching a 0mph Person while cruising at 10kph from 20m away',
-    duration=30.,
-    initial_speed=0. * CV.KPH_TO_MS,
-    person_relevancy=True,
-    initial_distance_person=20.,
-    speed_person_values=[0. * CV.MPH_TO_MS, 0. * CV.MPH_TO_MS],
-    speed_person_breakpoints=[0., 100.],
-    cruise_button_presses=[(CB.DECEL_SET, 0.3), (0, 0.4)]
-  ),
-  Maneuver(
-    'approaching a 0mph Person while cruising at 10kph from 10m away',
-    duration=30.,
-    initial_speed=0. * CV.KPH_TO_MS,
-    person_relevancy=True,
-    initial_distance_person=10.,
-    speed_person_values=[0. * CV.MPH_TO_MS, 0. * CV.MPH_TO_MS],
-    speed_person_breakpoints=[0., 100.],
-    cruise_button_presses=[(CB.DECEL_SET, 0.3), (0, 0.4)]
+    "stop and go with 1m/s2 lead decel and accel, with full stops",
+    duration=70.,
+    initial_speed=0.,
+    lead_relevancy=True,
+    initial_distance_lead=20.,
+    speed_lead_values=[10., 0., 0., 10., 0., 0.],
+    speed_lead_breakpoints=[10., 20., 30., 40., 50., 60.],
+    cruise_button_presses=[(CB.DECEL_SET, 1.2), (0, 1.3),
+                           (CB.RES_ACCEL, 1.4), (0.0, 1.5),
+                           (CB.RES_ACCEL, 1.6), (0.0, 1.7)]
   )
+  # Maneuver(
+  #   'approaching a 0mph Person while cruising at 10kph from 50m away',
+  #   duration=15.,
+  #   initial_speed=50. * CV.KPH_TO_MS,
+  #   person_relevancy=True,
+  #   initial_distance_person=45.,
+  #   speed_person_values=[0. * CV.MPH_TO_MS, 0. * CV.MPH_TO_MS],
+  #   speed_person_breakpoints=[0., 100.],
+  #   cruise_button_presses=[(CB.DECEL_SET, 0.3), (0, 0.4)]
+  # ),
+  # Maneuver(
+  #   'approaching a 0mph Person while cruising at 10kph from 50m away',
+  #   duration=30.,
+  #   initial_speed=0. * CV.KPH_TO_MS,
+  #   person_relevancy=True,
+  #   initial_distance_person=50.,
+  #   speed_person_values=[0. * CV.MPH_TO_MS, 0. * CV.MPH_TO_MS],
+  #   speed_person_breakpoints=[0., 100.],
+  #   cruise_button_presses=[(CB.DECEL_SET, 0.3), (0, 0.4)]
+  # ),
+  # Maneuver(
+  #   'approaching a 0mph Person while cruising at 10kph from 40m away',
+  #   duration=30.,
+  #   initial_speed=0. * CV.KPH_TO_MS,
+  #   person_relevancy=True,
+  #   initial_distance_person=40.,
+  #   speed_person_values=[0. * CV.MPH_TO_MS, 0. * CV.MPH_TO_MS],
+  #   speed_person_breakpoints=[0., 100.],
+  #   cruise_button_presses=[(CB.DECEL_SET, 0.3), (0, 0.4)]
+  # ),
+  # Maneuver(
+  #   'approaching a 0mph Person while cruising at 10kph from 30m away',
+  #   duration=30.,
+  #   initial_speed=0. * CV.KPH_TO_MS,
+  #   person_relevancy=True,
+  #   initial_distance_person=30.,
+  #   speed_person_values=[0. * CV.MPH_TO_MS, 0. * CV.MPH_TO_MS],
+  #   speed_person_breakpoints=[0., 100.],
+  #   cruise_button_presses=[(CB.DECEL_SET, 0.3), (0, 0.4)]
+  # ),
+  # Maneuver(
+  #   'approaching a 0mph Person while cruising at 10kph from 20m away',
+  #   duration=30.,
+  #   initial_speed=0. * CV.KPH_TO_MS,
+  #   person_relevancy=True,
+  #   initial_distance_person=20.,
+  #   speed_person_values=[0. * CV.MPH_TO_MS, 0. * CV.MPH_TO_MS],
+  #   speed_person_breakpoints=[0., 100.],
+  #   cruise_button_presses=[(CB.DECEL_SET, 0.3), (0, 0.4)]
+  # ),
+  # Maneuver(
+  #   'approaching a 0mph Person while cruising at 10kph from 10m away',
+  #   duration=30.,
+  #   initial_speed=0. * CV.KPH_TO_MS,
+  #   person_relevancy=True,
+  #   initial_distance_person=10.,
+  #   speed_person_values=[0. * CV.MPH_TO_MS, 0. * CV.MPH_TO_MS],
+  #   speed_person_breakpoints=[0., 100.],
+  #   cruise_button_presses=[(CB.DECEL_SET, 0.3), (0, 0.4)]
+  # )
 ]
 
 # Maneuver(
