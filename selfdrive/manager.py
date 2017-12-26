@@ -74,8 +74,9 @@ from selfdrive.loggerd.config import ROOT
 # comment out anything you don't want to run
 managed_processes = {
   #"uploader": "selfdrive.loggerd.uploader",
-  "controlsd": "selfdrive.controls.pid",
-  #"controlsd": "selfdrive.controls.controlsd",
+  "panda_boardd": "panda_test.panda_board",
+  #"controlsd": "selfdrive.controls.pid",
+  "controlsd": "selfdrive.controls.controlsd",
   "radard": "selfdrive.controls.radard",
   "loggerd": ("selfdrive/loggerd", ["./loggerd"]),
   "logmessaged": "selfdrive.logmessaged",

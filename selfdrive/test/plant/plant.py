@@ -232,7 +232,6 @@ class Plant(object):
     if (self.rk.frame%(self.rate/5)) == 0:
       print "%6.2f m  %6.2f m/s  %6.2f m/s2   %.2f ang   gas: %.2f  brake: %.2f  steer: %5.2f     lead_rel: %6.2f m  %6.2f m/s" % (distance, speed, acceleration, self.angle_steer, gas, brake, steer_torque, d_rel, v_rel)
       print "distance_lead_prev %f  distance_lead %f  d_rel %f" % (self.distance_lead_prev, distance_lead, d_rel)
-      print "distance_person_prev %f  distance_person %f  person_d_rel %f" % (self.distance_person_prev, distance_person, person_d_rel)
     # ******** publish the car ********
     vls = [self.speed_sensor(speed), self.speed_sensor(speed), self.speed_sensor(speed), self.speed_sensor(speed), self.speed_sensor(speed),
            self.angle_steer, self.angle_steer_rate, 0, self.gear_choice, speed!=0,

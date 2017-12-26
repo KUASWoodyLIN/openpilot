@@ -19,12 +19,15 @@ serial = u'360058000651363038363036'  # phone used
 
 def main(rate=100):
   panda_list = Panda.list()
-  rk = Ratekeeper(rate)
+  rk = Ratekeeper(100)
   context = zmq.Context()
+  publish_model = True
 
   # *** publishes can and health
   logcan = messaging.pub_sock(context, service_list['can'].port)
   health_sock = messaging.pub_sock(context, service_list['health'].port)
+  model = messaging.pub_sock(context, service_list['model'].port)
+  liveCalibration = messaging.pub_sock(context, service_list['liveCalibration'].port)
 
   # *** subscribes to can send
   sendcan = messaging.sub_sock(context, service_list['sendcan'].port)
@@ -44,7 +47,7 @@ def main(rate=100):
         can_msgs_bytes.append((address, 0, bytes(dat), src))
 
       # ************* health packet @ 1hz *************
-      if (rk.frame % rate) == 0:
+      if (rk.frame % 100) == 0:
         health = panda.health()
         msg = messaging.new_message()
         msg.init('health')
@@ -65,20 +68,37 @@ def main(rate=100):
         dat = can_list_to_can_capnp(can_msgs)
         logcan.send(dat.to_bytes())
 
+      # ******** publish a fake model going straight and fake calibration ********
+      # note that this is worst case for MPC, since model will delay long mpc by one time step
+      if publish_model and rk.frame % 5 == 0:
+        md = messaging.new_message()
+        cal = messaging.new_message()
+        md.init('model')
+        cal.init('liveCalibration')
+        md.model.frameId = 0
+        for x in [md.model.path, md.model.leftLane, md.model.rightLane]:
+          x.points = [0.0] * 50
+          x.prob = 1.0
+          x.std = 1.0
+        cal.liveCalibration.calStatus = 1
+        cal.liveCalibration.calPerc = 100
+        # fake values?
+        model.send(md.to_bytes())
+        liveCalibration.send(cal.to_bytes())
+
       # ******** send can if we have a packet *********
       tsc = messaging.recv_sock(sendcan)
       if tsc is not None:
         panda.can_send_many(can_capnp_to_can_list(tsc.sendcan))
 
       # **************** print message ****************
-      if (rk.frame % rate) == 1:
-        if can_msgs:
-          print can_msgs
+      if (rk.frame % 100) == 1:
+        # if can_msgs:
+        #   print can_msgs
         print 'voltage: ', health['voltage'], 'current: ', health['current'], 'started: ', health['started']
-
       rk.keep_time()
-    else:
-      print 'Panda connent fald'
+  else:
+    print 'Panda connent fald'
 
 
 if __name__ == '__main__':

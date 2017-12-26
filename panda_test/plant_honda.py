@@ -1,8 +1,8 @@
 import os
 import sys
-import struct
-path, panda_path = os.path.split(os.path.dirname(__file__))
-sys.path.append(path)
+path = os.path.dirname(os.path.abspath(__file__))
+openpilot_path, _ = os.path.split(path)
+sys.path.append(openpilot_path)
 
 import zmq
 import numpy as np
@@ -45,11 +45,15 @@ class PlantHonda(object):
     self.brake_only = False
 
     if not PlantHonda.can_bus_initialized:
-      self.p = Panda(serial)
-      self.p.set_safety_mode(self.p.SAFETY_ALLOUTPUT)
-      self.p.can_clear(0)
-      print 'Connect Panda [RECV]'
-      PlantHonda.can_bus_initialized = True
+      if serial in Panda.list():
+        self.p = Panda(serial)
+        self.p.set_safety_mode(self.p.SAFETY_ALLOUTPUT)
+        #self.p.can_clear(0)
+        print 'Connect Panda [RECV]'
+        PlantHonda.can_bus_initialized = True
+      else:
+        print 'Not Panda connect'
+        exit()
 
     self.angle_steer = 0.
     self.gear_choice = 0
