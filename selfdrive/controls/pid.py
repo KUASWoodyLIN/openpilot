@@ -369,7 +369,7 @@ def data_send(plan, plan_ts, CS, CI, CP, state, events, actuators, v_cruise_kph,
   # longitudinal control state
   dat.live100.longControlState = LoC.long_control_state
   dat.live100.vPid = float(LoC.v_pid)
-  dat.live100.vCruise = float(LoC.pid_acc)   #float(v_cruise_kph)
+  dat.live100.vCruise = float(v_cruise_kph)   #float(v_cruise_kph)   #fixfloat(LoC.pid_acc)
   dat.live100.upAccelCmd = float(LoC.pid.p)
   dat.live100.uiAccelCmd = float(LoC.pid.i)
 

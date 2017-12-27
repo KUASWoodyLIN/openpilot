@@ -73,15 +73,15 @@ class ManeuverPlot(object):
     plt_num += 1
     plt.figure(plt_num)
     plt.plot(
-      np.array(self.time_array), np.array(self.speed_array) * CV.MS_TO_MPH, 'r',
-      np.array(self.time_array), np.array(self.pid_speed_array) * CV.MS_TO_MPH, 'y--',
-      np.array(self.time_array), np.array(self.v_target_lead_array) * CV.MS_TO_MPH, 'b',
-      np.array(self.time_array), np.array(self.cruise_speed_array) * CV.KPH_TO_MPH, 'k',
-      np.array(self.time_array), np.array(self.v_lead_array) * CV.MS_TO_MPH, 'm'
+      np.array(self.time_array), np.array(self.speed_array) * CV.MS_TO_KPH, 'r',
+      np.array(self.time_array), np.array(self.pid_speed_array) * CV.MS_TO_KPH, 'y--',
+      np.array(self.time_array), np.array(self.v_target_lead_array) * CV.MS_TO_KPH, 'b',
+      # np.array(self.time_array), np.array(self.cruise_speed_array) * CV.KPH_TO_MPH, 'k',
+      # np.array(self.time_array), np.array(self.v_lead_array) * CV.MS_TO_MPH, 'm'
     )
     plt.xlabel('Time [s]')
-    plt.ylabel('Speed [mph]')
-    plt.legend(['speed', 'pid speed', 'Target (lead) speed', 'Cruise speed', 'Lead speed'], loc=0)
+    plt.ylabel('Speed [kph]')
+    plt.legend(['speed', 'pid speed', 'Target (lead) speed'], loc=0) #, 'Cruise speed', 'Lead speed'
     plt.grid()
     pylab.savefig("/".join([path, maneuver_name, 'speeds.svg']), dpi=1000)
 
