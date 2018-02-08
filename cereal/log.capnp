@@ -28,19 +28,23 @@ struct InitData {
   version @4 :Text;
   gitCommit @10 :Text;
   gitBranch @11 :Text;
+  gitRemote @13 :Text;
 
   androidBuildInfo @5 :AndroidBuildInfo;
   androidSensors @6 :List(AndroidSensor);
   chffrAndroidExtra @7 :ChffrAndroidExtra;
+  iosBuildInfo @14 :IosBuildInfo;
 
   pandaInfo @8 :PandaInfo;
 
   dirty @9 :Bool;
+  passive @12 :Bool;
 
   enum DeviceType {
     unknown @0;
     neo @1;
     chffrAndroid @2;
+    chffrIos @3;
   }
 
   struct AndroidBuildInfo {
@@ -89,6 +93,13 @@ struct InitData {
 
   struct ChffrAndroidExtra {
     allCameraCharacteristics @0 :Map(Text, Text);
+  }
+
+  struct IosBuildInfo {
+    appVersion @0 :Text;
+    appBuild @1 :UInt32;
+    osVersion @2 :Text;
+    deviceModel @3 :Text;
   }
 
   struct PandaInfo {
@@ -153,6 +164,8 @@ struct SensorEventData {
     pressure @9 :SensorVec;
     magneticUncalibrated @11 :SensorVec;
     gyroUncalibrated @12 :SensorVec;
+    proximity @13: Float32;
+    light @14: Float32;
   }
   source @8 :SensorSource;
 
@@ -218,6 +231,7 @@ struct GpsLocationData {
     fusion @4;
     external @5;
     ublox @6;
+    trimble @7;
   }
 }
 
@@ -241,8 +255,11 @@ struct ThermalData {
   freeSpace @7 :Float32;
   batteryPercent @8 :Int16;
   batteryStatus @9 :Text;
+  usbOnline @12 :Bool;
 
   fanSpeed @10 :UInt16;
+  started @11 :Bool;
+  startedTs @13 :UInt64;
 }
 
 struct HealthData {
@@ -286,7 +303,7 @@ struct Live20Data {
     vRel @2 :Float32;
     aRel @3 :Float32;
     vLead @4 :Float32;
-    aLead @5 :Float32;
+    aLeadDEPRECATED @5 :Float32;
     dPath @6 :Float32;
     vLat @7 :Float32;
     vLeadK @8 :Float32;
@@ -327,25 +344,33 @@ struct Live100Data {
   mdMonoTimeDEPRECATED @18 :UInt64;
   planMonoTime @28 :UInt64;
 
+  state @31 :ControlState;
   vEgo @0 :Float32;
+  vEgoRaw @32 :Float32;
   aEgoDEPRECATED @1 :Float32;
+  longControlState @30 :LongControlState;
   vPid @2 :Float32;
   vTargetLead @3 :Float32;
   upAccelCmd @4 :Float32;
   uiAccelCmd @5 :Float32;
+  ufAccelCmd @33 :Float32;
   yActualDEPRECATED @6 :Float32;
-  yDes @7 :Float32;
+  yDesDEPRECATED @7 :Float32;
   upSteer @8 :Float32;
   uiSteer @9 :Float32;
-  aTargetMin @10 :Float32;
-  aTargetMax @11 :Float32;
+  ufSteer @34 :Float32;
+  aTargetMinDEPRECATED @10 :Float32;
+  aTargetMaxDEPRECATED @11 :Float32;
+  aTarget @35 :Float32;
   jerkFactor @12 :Float32;
   angleSteers @13 :Float32;     # Steering angle in degrees.
   angleSteersDes @29 :Float32;
+  curvature @37 :Float32;       # path curvature from vehicle model
   hudLeadDEPRECATED @14 :Int32;
   cumLagMs @15 :Float32;
 
   enabled @19 :Bool;
+  active @36 :Bool;
   steerOverride @20 :Bool;
 
   vCruise @22 :Float32;
@@ -353,9 +378,41 @@ struct Live100Data {
   rearViewCam @23 :Bool;
   alertText1 @24 :Text;
   alertText2 @25 :Text;
+  alertStatus @38 :AlertStatus;
+  alertSize @39 :AlertSize;
   awarenessStatus @26 :Float32;
 
   angleOffset @27 :Float32;
+
+  gpsPlannerActive @40 :Bool;
+
+  enum ControlState {
+    disabled @0;
+    preEnabled @1;
+    enabled @2;
+    softDisabling @3;
+  }
+
+  enum LongControlState {
+    off @0;
+    pid @1;
+    stopping @2;
+    starting @3;
+  }
+
+  enum AlertStatus {
+    normal @0;       # low priority alert for user's convenience
+    userPrompt @1;   # mid piority alert that might require user intervention
+    critical @2;     # high priority alert that needs immediate user intervention
+  }
+
+  enum AlertSize {
+    none @0;    # don't display the alert
+    small @1;   # small box
+    mid @2;     # mid screen
+    full @3;    # full screen
+  }
+
 }
 
 struct LiveEventData {
@@ -370,6 +427,7 @@ struct ModelData {
   leftLane @2 :PathData;
   rightLane @3 :PathData;
   lead @4 :LeadData;
+  freePath @6 :List(Float32);
 
   settings @5 :ModelSettings;
 
@@ -453,19 +511,32 @@ struct Plan {
 
   # longitudinal
   longitudinalValid @2 :Bool;
+  vCruise @16 :Float32;
+  aCruise @17 :Float32;
   vTarget @3 :Float32;
-  aTargetMin @4 :Float32;
-  aTargetMax @5 :Float32;
+  vTargetFuture @14 :Float32;
+  aTargetMinDEPRECATED @4 :Float32;
+  aTargetMaxDEPRECATED @5 :Float32;
+  aTarget @18 :Float32;
   jerkFactor @6 :Float32;
   hasLead @7 :Bool;
   fcw @8 :Bool;
+  longitudinalPlanSource @15 :LongitudinalPlanSource;
 
   # gps trajectory in car frame
   gpsTrajectory @12 :GpsTrajectory;
 
+  gpsPlannerActive @19 :Bool;
+
   struct GpsTrajectory {
     x @0 :List(Float32);
     y @1 :List(Float32);
+  }
+
+  enum LongitudinalPlanSource {
+    cruise @0;
+    mpc1 @1;
+    mpc2 @2;
   }
 }
 
@@ -502,6 +573,16 @@ struct LiveLocationData {
 
   accuracy @13 :Accuracy;
 
+  source @14 :SensorSource;
+  # if we are fixing a location in the past
+  fixMonoTime @15 :UInt64;
+  
+  gpsWeek @16 :Int32;
+  timeOfWeek @17 :Float64;
+
+  positionECEF @18 :List(Float64);
+  poseQuatECEF @19 :List(Float32);
+
   struct Accuracy {
     pNEDError @0 :List(Float32);
     vNEDError @1 :List(Float32);
@@ -511,6 +592,13 @@ struct LiveLocationData {
     ellipsoidSemiMajorError @5 :Float32;
     ellipsoidSemiMinorError @6 :Float32;
     ellipsoidOrientationError @7 :Float32;
+  }
+
+  enum SensorSource {
+    applanix @0;
+    kalman @1;
+    orbslam @2;
+    timing @3;
   }
 }
 
@@ -563,6 +651,23 @@ struct NavUpdate {
       uturn @19;
       # ...
     }
+  }
+}
+
+struct NavStatus {
+  isNavigating @0 :Bool;
+  currentAddress @1 :Address;
+
+  struct Address {
+    title @0 :Text;
+    lat @1 :Float64;
+    lng @2 :Float64;
+    house @3 :Text;
+    address @4 :Text;
+    street @5 :Text;
+    city @6 :Text;
+    state @7 :Text;
+    country @8 :Text;
   }
 }
 
@@ -1073,6 +1178,7 @@ struct UbloxGnss {
   union {
     measurementReport @0 :MeasurementReport;
     ephemeris @1 :Ephemeris;
+    ionoData @2 :IonoData;
   }
 
   struct MeasurementReport {
@@ -1175,8 +1281,23 @@ struct UbloxGnss {
 
     transmissionTime @34 :Float64;
     fitInterval @35 :Float64;
+
+    toc @36 :Float64;
+  }
+
+  struct IonoData {
+    svHealth @0 :UInt32;
+    tow  @1 :Float64;
+    gpsWeek @2 :Float64;
+
+    ionoAlpha @3 :List(Float64);
+    ionoBeta @4 :List(Float64);
+
+    healthValid @5 :Bool;
+    ionoCoeffsValid @6 :Bool;
   }
 }
+
 
 struct Clocks {
   bootTimeNanos @0 :UInt64;
@@ -1191,6 +1312,70 @@ struct LiveMpcData {
   y @1 :List(Float32);
   psi @2 :List(Float32);
   delta @3 :List(Float32);
+  qpIterations @4 :UInt32;
+  calculationTime @5 :UInt64;
+}
+
+struct LiveLongitudinalMpcData {
+  xEgo @0 :List(Float32);
+  vEgo @1 :List(Float32);
+  aEgo @2 :List(Float32);
+  xLead @3 :List(Float32);
+  vLead @4 :List(Float32);
+  aLead @5 :List(Float32);
+  aLeadTau @6 :Float32;    # lead accel time constant
+  qpIterations @7 :UInt32;
+  mpcId @8 :UInt32;
+  calculationTime @9 :UInt64;
+}
+
+
+struct ECEFPoint {
+  x @0 :Float32;
+  y @1 :Float32;
+  z @2 :Float32;
+}
+
+struct GPSPlannerPoints {
+  curPos @0 :ECEFPoint;
+  points @1 :List(ECEFPoint);
+  valid @2 :Bool;
+  trackName @3 :Text;
+  instructionProgress @4 :Float32;
+}
+
+struct GPSPlannerPlan {
+  valid @0 :Bool;
+  poly @1 :List(Float32);
+  trackName @2 :Text;
+  speed @3 :Float32;
+}
+
+struct TrafficSigns {
+  type @0 :Type;
+  distance @1 :Float32;
+  action @2 :Action;
+  resuming @3 :Bool;
+
+  enum Type {
+    light @0;
+  }
+
+  enum Action {
+    none @0;
+    yield @1;
+    stop @2;
+  }
+
+}
+
+struct OrbslamCorrection {
+  correctionMonoTime @0 :UInt64;
+  prePositionECEF @1 :List(Float64);
+  postPositionECEF @2 :List(Float64);
+  prePoseQuatECEF @3 :List(Float32);
+  postPoseQuatECEF @4 :List(Float32);
+  numInliers @5 :UInt32;
 }
 
 struct Event {
@@ -1234,5 +1419,15 @@ struct Event {
     ubloxGnss @34 :UbloxGnss;
     clocks @35 :Clocks;
     liveMpc @36 :LiveMpcData;
+    liveLongitudinalMpc @37 :LiveLongitudinalMpcData;
+    navStatus @38 :NavStatus;
+    ubloxRaw @39 :Data;
+    gpsPlannerPoints @40 :GPSPlannerPoints;
+    gpsPlannerPlan @41 :GPSPlannerPlan;
+    applanixRaw @42 :Data;
+    trafficSigns @43 :List(TrafficSigns);
+    liveLocationTiming @44 :LiveLocationData;
+    orbslamCorrection @45 :OrbslamCorrection;
+    liveLocationCorrected @46 :LiveLocationData;
   }
 }

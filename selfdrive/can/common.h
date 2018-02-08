@@ -8,6 +8,8 @@
 #define ARRAYSIZE(x) (sizeof(x)/sizeof(x[0]))
 
 
+unsigned int honda_checksum(unsigned int address, uint64_t d, int l);
+unsigned int toyota_checksum(unsigned int address, uint64_t d, int l);
 
 struct SignalPackValue {
   const char* name;
@@ -38,6 +40,7 @@ enum SignalType {
   DEFAULT,
   HONDA_CHECKSUM,
   HONDA_COUNTER,
+  TOYOTA_CHECKSUM,
 };
 
 struct Signal {
@@ -51,6 +54,7 @@ struct Signal {
 struct Msg {
   const char* name;
   uint32_t address;
+  unsigned int size;
   size_t num_sigs;
   const Signal *sigs;
 };

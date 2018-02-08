@@ -1,6 +1,5 @@
 import abc
 import numpy as np
-import numpy.matlib
 # The EKF class contains the framework for an Extended Kalman Filter, but must be subclassed to use.
 # A subclass must implement:
 #   1) calc_transfer_fun(); see bottom of file for more info.
@@ -19,6 +18,7 @@ import numpy.matlib
 # update() should be called once per sensor, and can be called multiple times between predict steps.
 # Access and set the state of the filter directly with ekf.state and ekf.covar.
 
+
 class SensorReading:
   # Given a perfect model and no noise, data = obs_model * state
   def __init__(self, data, covar, obs_model):
@@ -33,8 +33,8 @@ class SensorReading:
 
 # A generic sensor class that does no pre-processing of data
 class SimpleSensor:
-  # obs_model can be 
-  #   a full obesrvation model matrix, or
+  # obs_model can be
+  #   a full observation model matrix, or
   #   an integer or tuple of indices into ekf.state, indicating which variables are being directly observed
   # covar can be
   #   a full covariance matrix
@@ -128,14 +128,14 @@ class EKF:
       print "covar:\n",self.covar
 
   def update_scalar(self, reading):
-    # like update but knowing that measurment is a scalar
+    # like update but knowing that measurement is a scalar
     # this avoids matrix inversions and speeds up (surprisingly) drived.py a lot
 
-    # innovation = reading.data - np.matmul(reading.obs_model, self.state)   
-    # innovation_covar = np.matmul(np.matmul(reading.obs_model, self.covar), reading.obs_model.T) + reading.covar    
-    # kalman_gain = np.matmul(self.covar, reading.obs_model.T)/innovation_covar   
-    # self.state += np.matmul(kalman_gain, innovation)   
-    # aux_mtrx = self.identity - np.matmul(kalman_gain, reading.obs_model)    
+    # innovation = reading.data - np.matmul(reading.obs_model, self.state)
+    # innovation_covar = np.matmul(np.matmul(reading.obs_model, self.covar), reading.obs_model.T) + reading.covar
+    # kalman_gain = np.matmul(self.covar, reading.obs_model.T)/innovation_covar
+    # self.state += np.matmul(kalman_gain, innovation)
+    # aux_mtrx = self.identity - np.matmul(kalman_gain, reading.obs_model)
     # self.covar =  np.matmul(aux_mtrx, np.matmul(self.covar, aux_mtrx.T)) + np.matmul(kalman_gain, np.matmul(reading.covar, kalman_gain.T))
 
     # written without np.matmul
@@ -174,7 +174,7 @@ class EKF:
 
     #! Clip covariance to avoid explosions
     self.covar = np.clip(self.covar,-1e10,1e10)
-    
+
   @abc.abstractmethod
   def calc_transfer_fun(self, dt):
     """Return a tuple with the transfer function and transfer function jacobian
@@ -187,8 +187,9 @@ class EKF:
 
     Current implementations calculate A and J as functions of state. Control input
       can be added trivially by adding a control parameter to predict() and calc_tranfer_update(),
-      and using it during calcualtion of A and J
+      and using it during calculation of A and J
     """
+
 
 class FastEKF1D(EKF):
   """Fast version of EKF for 1D problems with scalar readings."""
