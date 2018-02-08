@@ -1,23 +1,26 @@
 #!/usr/bin/env python
 import os
-import time
 import numpy as np
+from cereal import car
 from common.numpy_fast import clip, interp
 from common.realtime import sec_since_boot
 from selfdrive.config import Conversions as CV
 from selfdrive.controls.lib.drive_helpers import create_event, EventTypes as ET, get_events
-from cereal import car
-from selfdrive.services import service_list
-import selfdrive.messaging as messaging
+from selfdrive.controls.lib.vehicle_model import VehicleModel
 from selfdrive.car.honda.carstate import CarState, get_can_parser
-from selfdrive.car.honda.carcontroller import CAMERA_MSGS
 from selfdrive.car.honda.values import CruiseButtons, CM, BP, AH
 from selfdrive.controls.lib.planner import A_ACC_MAX
+from common.fingerprints import HONDA as CAR
 
 try:
   from .carcontroller import CarController
 except ImportError:
   CarController = None
+
+
+# msgs sent for steering controller by camera module on can 0.
+# those messages are mutually exclusive on CRV and non-CRV cars
+CAMERA_MSGS = [0xe4, 0x194]
 
 
 def compute_gb_honda(accel, speed):
@@ -89,17 +92,14 @@ class CarInterface(object):
 
     # *** init the major players ***
     self.CS = CarState(CP)
+    self.VM = VehicleModel(CP)
 
     # sending if read only is False
     if sendcan is not None:
       self.sendcan = sendcan
       self.CC = CarController(CP.enableCamera)
 
-    if self.CS.accord:
-      # self.accord_msg = []
-      raise NotImplementedError
-
-    if not self.CS.civic:
+    if self.CS.CP.carFingerprint == CAR.ACURA_ILX:
       self.compute_gb = get_compute_gb_acura()
     else:
       self.compute_gb = compute_gb_honda
@@ -108,7 +108,7 @@ class CarInterface(object):
   def calc_accel_override(a_ego, a_target, v_ego, v_target):
     eA = a_ego - a_target
     valuesA = [1.0, 0.1]
-    bpA = [0.0, 0.5]
+    bpA = [0.3, 1.1]
 
     eV = v_ego - v_target
     valuesV = [1.0, 0.1]
@@ -127,7 +127,6 @@ class CarInterface(object):
     ret = car.CarParams.new_message()
 
     ret.carName = "honda"
-    ret.radarName = "nidec"
     ret.carFingerprint = candidate
 
     ret.safetyModel = car.CarParams.SafetyModels.honda
@@ -144,61 +143,73 @@ class CarInterface(object):
 
     # FIXME: hardcoding honda civic 2016 touring params so they can be used to
     # scale unknown params for other cars
-    m_civic = 2923./2.205 + std_cargo
-    l_civic = 2.70
-    aF_civic = l_civic * 0.4
-    aR_civic = l_civic - aF_civic
-    j_civic = 2500
-    cF_civic = 85400
-    cR_civic = 90000
+    mass_civic = 2923./2.205 + std_cargo
+    wheelbase_civic = 2.70
+    centerToFront_civic = wheelbase_civic * 0.4
+    centerToRear_civic = wheelbase_civic - centerToFront_civic
+    rotationalInertia_civic = 2500
+    tireStiffnessFront_civic = 85400
+    tireStiffnessRear_civic = 90000
 
-    if candidate == "HONDA CIVIC 2016 TOURING":
+    if candidate == CAR.CIVIC:
       stop_and_go = True
-      ret.m = m_civic
-      ret.l = l_civic
-      ret.aF = aF_civic
-      ret.sR = 13.0
+      ret.mass = mass_civic
+      ret.wheelbase = wheelbase_civic
+      ret.centerToFront = centerToFront_civic
+      ret.steerRatio = 13.0
       # Civic at comma has modified steering FW, so different tuning for the Neo in that car
-      is_fw_modified = os.getenv("DONGLE_ID") in ['b0f5a01cf604185c']
+      is_fw_modified = os.getenv("DONGLE_ID") in ['99c94dc769b5d96e']
       ret.steerKp, ret.steerKi = [0.4, 0.12] if is_fw_modified else [0.8, 0.24]
 
       ret.longitudinalKpBP = [0., 5., 35.]
       ret.longitudinalKpV = [3.6, 2.4, 1.5]
       ret.longitudinalKiBP = [0., 35.]
       ret.longitudinalKiV = [0.54, 0.36]
-    elif candidate == "ACURA ILX 2016 ACURAWATCH PLUS":
+    elif candidate == CAR.ACURA_ILX:
       stop_and_go = False
-      ret.m = 3095./2.205 + std_cargo
-      ret.l = 2.67
-      ret.aF = ret.l * 0.37
-      ret.sR = 15.3
+      ret.mass = 3095./2.205 + std_cargo
+      ret.wheelbase = 2.67
+      ret.centerToFront = ret.wheelbase * 0.37
+      ret.steerRatio = 15.3
       # Acura at comma has modified steering FW, so different tuning for the Neo in that car
-      is_fw_modified = os.getenv("DONGLE_ID") in ['cb38263377b873ee']
+      is_fw_modified = os.getenv("DONGLE_ID") in ['85a6c74d4ad9c310']
       ret.steerKp, ret.steerKi = [0.4, 0.12] if is_fw_modified else [0.8, 0.24]
 
       ret.longitudinalKpBP = [0., 5., 35.]
       ret.longitudinalKpV = [1.2, 0.8, 0.5]
       ret.longitudinalKiBP = [0., 35.]
       ret.longitudinalKiV = [0.18, 0.12]
-    elif candidate == "HONDA ACCORD 2016 TOURING":
+    elif candidate == CAR.CRV:
       stop_and_go = False
-      ret.m = 3580./2.205 + std_cargo
-      ret.l = 2.74
-      ret.aF = ret.l * 0.38
-      ret.sR = 15.3
+      ret.mass = 3572./2.205 + std_cargo
+      ret.wheelbase = 2.62
+      ret.centerToFront = ret.wheelbase * 0.41
+      ret.steerRatio = 15.3
       ret.steerKp, ret.steerKi = 0.8, 0.24
 
       ret.longitudinalKpBP = [0., 5., 35.]
       ret.longitudinalKpV = [1.2, 0.8, 0.5]
       ret.longitudinalKiBP = [0., 35.]
       ret.longitudinalKiV = [0.18, 0.12]
-    elif candidate == "HONDA CR-V 2016 TOURING":
+    elif candidate == CAR.ACURA_RDX:
       stop_and_go = False
-      ret.m = 3572./2.205 + std_cargo
-      ret.l = 2.62
-      ret.aF = ret.l * 0.41
-      ret.sR = 15.3
+      ret.mass = 3935./2.205 + std_cargo
+      ret.wheelbase = 2.68
+      ret.centerToFront = ret.wheelbase * 0.38
+      ret.steerRatio = 15.0
       ret.steerKp, ret.steerKi = 0.8, 0.24
+
+      ret.longitudinalKpBP = [0., 5., 35.]
+      ret.longitudinalKpV = [1.2, 0.8, 0.5]
+      ret.longitudinalKiBP = [0., 35.]
+      ret.longitudinalKiV = [0.18, 0.12]  
+    elif candidate == CAR.ODYSSEY:
+      stop_and_go = False
+      ret.mass = 4354./2.205 + std_cargo
+      ret.wheelbase = 3.00
+      ret.centerToFront = ret.wheelbase * 0.41
+      ret.steerRatio = 14.35
+      ret.steerKp, ret.steerKi = 0.6, 0.18
 
       ret.longitudinalKpBP = [0., 5., 35.]
       ret.longitudinalKpV = [1.2, 0.8, 0.5]
@@ -214,18 +225,23 @@ class CarInterface(object):
     # conflict with PCM acc
     ret.minEnableSpeed = -1. if (stop_and_go or ret.enableGas) else 25.5 * CV.MPH_TO_MS
 
-    ret.aR = ret.l - ret.aF
+    centerToRear = ret.wheelbase - ret.centerToFront
     # TODO: get actual value, for now starting with reasonable value for
     # civic and scaling by mass and wheelbase
-    ret.j = j_civic * ret.m * ret.l**2 / (m_civic * l_civic**2)
+    ret.rotationalInertia = rotationalInertia_civic * \
+                            ret.mass * ret.wheelbase**2 / (mass_civic * wheelbase_civic**2)
 
     # TODO: start from empirically derived lateral slip stiffness for the civic and scale by
     # mass and CG position, so all cars will have approximately similar dyn behaviors
-    ret.cF = cF_civic * ret.m / m_civic * (ret.aR / ret.l) / (aR_civic / l_civic)
-    ret.cR = cR_civic * ret.m / m_civic * (ret.aF / ret.l) / (aF_civic / l_civic)
+    ret.tireStiffnessFront = tireStiffnessFront_civic * \
+                             ret.mass / mass_civic * \
+                             (centerToRear / ret.wheelbase) / (centerToRear_civic / wheelbase_civic)
+    ret.tireStiffnessRear = tireStiffnessRear_civic * \
+                            ret.mass / mass_civic * \
+                            (ret.centerToFront / ret.wheelbase) / (centerToFront_civic / wheelbase_civic)
 
     # no rear steering, at least on the listed cars above
-    ret.chi = 0.
+    ret.steerRatioRear = 0.
 
     # no max steer limit VS speed
     ret.steerMaxBP = [0.]  # m/s
@@ -242,6 +258,8 @@ class CarInterface(object):
     ret.stoppingControl = True
     ret.steerLimitAlert = True
     ret.startAccel = 0.5
+
+    ret.steerRateCost = 0.5
 
     return ret
 
@@ -261,6 +279,7 @@ class CarInterface(object):
     ret.vEgo = self.CS.v_ego
     ret.aEgo = self.CS.a_ego
     ret.vEgoRaw = self.CS.v_ego_raw
+    ret.yawRate = self.VM.yaw_rate(self.CS.angle_steers * CV.DEG_TO_RAD, self.CS.v_ego)
     ret.standstill = self.CS.standstill
     ret.wheelSpeeds.fl = self.CS.v_wheel_fl
     ret.wheelSpeeds.fr = self.CS.v_wheel_fr
@@ -278,7 +297,7 @@ class CarInterface(object):
     ret.brake = self.CS.user_brake
     ret.brakePressed = self.CS.brake_pressed != 0
     # FIXME: read sendcan for brakelights
-    brakelights_threshold = 0.02 if self.CS.civic else 0.1
+    brakelights_threshold = 0.02 if self.CS.CP.carFingerprint == CAR.CIVIC else 0.1
     ret.brakeLights = bool(self.CS.brake_switch or
                            c.actuators.brake > brakelights_threshold)
 
@@ -303,6 +322,9 @@ class CarInterface(object):
     buttonEvents = []
     ret.leftBlinker = bool(self.CS.left_blinker_on)
     ret.rightBlinker = bool(self.CS.right_blinker_on)
+
+    ret.doorOpen = not self.CS.door_all_closed
+    ret.seatbeltUnlatched = not self.CS.seatbelt
 
     if self.CS.left_blinker_on != self.CS.prev_left_blinker_on:
       be = car.CarState.ButtonEvent.new_message()
@@ -361,16 +383,16 @@ class CarInterface(object):
     else:
       self.can_invalid_count = 0
     if self.CS.steer_error:
-      events.append(create_event('steerUnavailable', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE]))
+      events.append(create_event('steerUnavailable', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE, ET.PERMANENT]))
     elif self.CS.steer_not_allowed:
       events.append(create_event('steerTempUnavailable', [ET.NO_ENTRY, ET.WARNING]))
     if self.CS.brake_error:
-      events.append(create_event('brakeUnavailable', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE]))
+      events.append(create_event('brakeUnavailable', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE, ET.PERMANENT]))
     if not ret.gearShifter == 'drive':
       events.append(create_event('wrongGear', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
-    if not self.CS.door_all_closed:
+    if ret.doorOpen:
       events.append(create_event('doorOpen', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
-    if not self.CS.seatbelt:
+    if ret.seatbeltUnlatched:
       events.append(create_event('seatbeltNotLatched', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
     if self.CS.esp_disabled:
       events.append(create_event('espDisabled', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
@@ -399,7 +421,7 @@ class CarInterface(object):
     # TODO: for the Acura, cancellation below 25mph is normal. Issue a non loud alert
     if self.CP.enableCruise and not ret.cruiseState.enabled and c.actuators.brake <= 0.:
       events.append(create_event("cruiseDisabled", [ET.IMMEDIATE_DISABLE]))
-    if not self.CS.civic and ret.vEgo < 0.001:
+    if self.CS.CP.carFingerprint != CAR.CIVIC and ret.vEgo < 0.001:
       events.append(create_event('manualRestart', [ET.WARNING]))
 
     cur_time = sec_since_boot()

@@ -28,6 +28,7 @@ selfdrive/proclogd/proclogd
 selfdrive/ui/ui
 selfdrive/test/plant/out
 selfdrive/test/tests/plant/out
+selfdrive/test/tests/plant/longitudinal
 selfdrive/data
 /src/
 .vscode

@@ -10,6 +10,7 @@ class EventTypes:
   USER_DISABLE = 'userDisable'
   SOFT_DISABLE = 'softDisable'
   IMMEDIATE_DISABLE = 'immediateDisable'
+  PERMANENT = 'permanent'
 
 
 def create_event(name, types):
@@ -42,7 +43,8 @@ def learn_angle_offset(lateral_control, v_ego, angle_offset, c_poly, c_prob, ang
   min_learn_speed = 1.
 
   # learn less at low speed or when turning
-  alpha_v = alpha * c_prob * (max(v_ego - min_learn_speed, 0.)) / (1. + 0.2 * abs(angle_steers))
+  slow_factor = 1. / (1. + 0.02 * abs(angle_steers) * v_ego)
+  alpha_v = alpha * c_prob * (max(v_ego - min_learn_speed, 0.)) * slow_factor
 
   # only learn if lateral control is active and if driver is not overriding:
   if lateral_control and not steer_override:

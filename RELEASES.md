@@ -1,3 +1,32 @@
+Version 0.4.2 (2018-02-05)
+==========================
+ * Add alpha support for 2017 Lexus RX Hybrid
+ * Add alpha support for 2018 ACURA RDX
+ * Updated fingerprint to include Toyota Rav4 SE and Prius Prime
+ * Bugfixes for Acura ILX and Honda Odyssey
+
+Version 0.4.1 (2018-01-30)
+==========================
+ * Add alpha support for 2017 Toyota Corolla
+ * Add alpha support for 2018 Honda Odyssey with Honda Sensing
+ * Add alpha support for Grey Panda
+ * Refactored car abstraction layer to make car ports easier
+ * Increased steering torque limit on Honda CR-V by 30%
+
+Version 0.4.0.2 (2018-01-18)
+==========================
+ * Add focus adjustment slider
+ * Minor bugfixes
+
+Version 0.4.0.1 (2017-12-21)
+==========================
+ * New UI to match chffrplus
+ * Improved lateral control tuning to fix oscillations on Civic
+ * Add alpha support for 2017 Toyota Rav4 Hybrid
+ * Reduced CPU usage
+ * Removed unnecessary utilization of fan at max speed
+ * Minor bug fixes
+
 Version 0.3.9 (2017-11-21)
 ==========================
  * Add alpha support for 2017 Toyota Prius

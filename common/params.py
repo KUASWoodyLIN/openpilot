@@ -52,11 +52,14 @@ keys = {
   "Version": TxType.PERSISTANT,
   "GitCommit": TxType.PERSISTANT,
   "GitBranch": TxType.PERSISTANT,
+  "GitRemote": TxType.PERSISTANT,
 # written: baseui
 # read:    ui, controls
   "IsMetric": TxType.PERSISTANT,
   "IsRearViewMirror": TxType.PERSISTANT,
   "IsFcwEnabled": TxType.PERSISTANT,
+  "HasAcceptedTerms": TxType.PERSISTANT,
+  "IsUploadVideoOverCellularEnabled": TxType.PERSISTANT,
 # written: visiond
 # read:    visiond, controlsd
   "CalibrationParams": TxType.PERSISTANT,
@@ -68,6 +71,7 @@ keys = {
   "CarParams": TxType.CLEAR_ON_CAR_START,
 
   "Passive": TxType.PERSISTANT,
+  "DoUninstall": TxType.CLEAR_ON_MANAGER_START,
 }
 
 def fsync_dir(path):
@@ -223,7 +227,7 @@ class DBWriter(DBAccessor):
         data_path = self._data_path()
         try:
           old_data_path = os.path.join(self._path, os.readlink(data_path))
-        except (OSError, IOError) as e:
+        except (OSError, IOError):
           # NOTE(mgraczyk): If other DB implementations have bugs, this could cause
           #                 copies to be left behind, but we still want to overwrite.
           pass
