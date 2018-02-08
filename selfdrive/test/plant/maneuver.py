@@ -49,7 +49,7 @@ class Maneuver(object):
       speed_lead = np.interp(plant.current_time(), self.speed_lead_breakpoints, self.speed_lead_values)
       speed_person = np.interp(plant.current_time(), self.speed_person_breakpoints, self.speed_person_values)
 
-      distance, speed, acceleration, distance_lead, distance_person,brake, gas, steer_torque, fcw, live100= plant.step(speed_lead, current_button, grade)
+      distance, speed, acceleration, distance_lead, distance_person,brake, gas, steer_torque, fcw, live100= plant.step(speed_lead, speed_person, current_button, grade)
 
       if live100:
         last_live100 = live100[-1]
