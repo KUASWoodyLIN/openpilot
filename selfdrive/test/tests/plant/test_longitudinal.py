@@ -300,22 +300,7 @@ maneuvers = [
   # )
 ]
 
-<<<<<<< HEAD
-# Maneuver(
-#   'approaching a 0mph Person while cruising at 10kph from 50m away',
-#   duration=70.,
-#   initial_speed=0. * CV.KPH_TO_MS,
-#   person_relevancy=True,
-#   initial_distance_person=20.,
-#   speed_person_values=[10., 0., 0., 10., 0., 0.],
-#   speed_person_breakpoints=[10., 20., 30., 40., 50., 60.],
-#   cruise_button_presses=[(CB.DECEL_SET, 1.2), (0, 1.3),
-#                          (CB.RES_ACCEL, 1.4), (0.0, 1.5),
-#                          (CB.RES_ACCEL, 1.6), (0.0, 1.7)]
-# )
-=======
 #maneuvers = [maneuvers[-1]]
->>>>>>> devel
 
 def setup_output():
   output_dir = os.path.join(os.getcwd(), 'out/longitudinal')

@@ -257,11 +257,7 @@ class Planner(object):
   def __init__(self, CP, fcw_enabled):
     context = zmq.Context()
     self.CP = CP
-<<<<<<< HEAD
-    self.live20 = messaging.sub_sock(context, service_list['live20'].port)
-    self.model = messaging.sub_sock(context, service_list['model'].port)
-    self.vision = messaging.sub_sock(context, service_list['vision'].port)
-=======
+
     self.poller = zmq.Poller()
     self.live20 = messaging.sub_sock(context, service_list['live20'].port, conflate=True, poller=self.poller)
     self.model = messaging.sub_sock(context, service_list['model'].port, conflate=True, poller=self.poller)
@@ -270,20 +266,16 @@ class Planner(object):
       self.gps_planner_plan = messaging.sub_sock(context, service_list['gpsPlannerPlan'].port, conflate=True, poller=self.poller, addr=GPS_PLANNER_ADDR)
     else:
       self.gps_planner_plan = None
->>>>>>> devel
 
     self.plan = messaging.pub_sock(context, service_list['plan'].port)
     self.live_longitudinal_mpc = messaging.pub_sock(context, service_list['liveLongitudinalMpc'].port)
 
     self.last_md_ts = 0
     self.last_l20_ts = 0
-    self.last_vision_ts = 0
     self.last_model = 0.
     self.last_l20 = 0.
-    self.last_vision = 0.
     self.model_dead = True
     self.radar_dead = True
-    self.vision_dead = True
     self.radar_errors = []
 
     self.PP = PathPlanner()
@@ -347,17 +339,7 @@ class Planner(object):
     cur_time = sec_since_boot()
     v_cruise_setpoint = v_cruise_kph * CV.KPH_TO_MS
 
-<<<<<<< HEAD
-    lead = messaging.recv_sock(self.vision)
-    if lead is not None:
-      self.last_vision_ts = lead.logMonoTime
-      self.last_vision = cur_time
-      self.vision_dead = False
-    if cur_time - self.last_vision > 0.5:
-      self.vision_dead = True
 
-    md = messaging.recv_sock(self.model)
-=======
     md = None
     l20 = None
     gps_planner_plan = None
@@ -373,7 +355,6 @@ class Planner(object):
     if gps_planner_plan is not None:
       self.last_gps_planner_plan = gps_planner_plan
 
->>>>>>> devel
     if md is not None:
       self.last_md_ts = md.logMonoTime
       self.last_model = cur_time

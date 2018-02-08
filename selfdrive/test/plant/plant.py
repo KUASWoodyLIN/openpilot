@@ -104,11 +104,7 @@ class Plant(object):
       # sub
       Plant.sendcan = messaging.sub_sock(context, service_list['sendcan'].port)
       Plant.live100 = messaging.sub_sock(context, service_list['live100'].port)
-<<<<<<< HEAD
-
-=======
       Plant.plan = messaging.sub_sock(context, service_list['plan'].port)
->>>>>>> devel
       Plant.messaging_initialized = True
 
     self.angle_steer = 0.
@@ -345,11 +341,8 @@ class Plant(object):
     self.v_person_prev = v_person
 
     self.rk.keep_time()
-<<<<<<< HEAD
-    return (distance, speed, acceleration, distance_lead, distance_person, brake, gas, steer_torque, live_msgs)
-=======
-    return (distance, speed, acceleration, distance_lead, brake, gas, steer_torque, fcw, live100_msgs)
->>>>>>> devel
+
+    return (distance, speed, acceleration, distance_lead, distance_person, brake, gas, steer_torque, fcw, live100_msgs)
 
 # simple engage in standalone mode
 def plant_thread(rate=100):

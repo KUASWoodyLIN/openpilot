@@ -260,11 +260,7 @@ class CarState(object):
     self.brake_switch = cp.vl["POWERTRAIN_DATA"]['BRAKE_SWITCH']
     self.brake_pressed = cp.vl["POWERTRAIN_DATA"]['BRAKE_PRESSED'] or \
                          (self.brake_switch and self.brake_switch_prev and \
-<<<<<<< HEAD
-                          cp.ts[0x17C]['BRAKE_SWITCH'] != self.brake_switch_ts)
-=======
                          cp.ts["POWERTRAIN_DATA"]['BRAKE_SWITCH'] != self.brake_switch_ts)
->>>>>>> devel
     self.brake_switch_prev = self.brake_switch
     self.brake_switch_ts = cp.ts["POWERTRAIN_DATA"]['BRAKE_SWITCH']
 
