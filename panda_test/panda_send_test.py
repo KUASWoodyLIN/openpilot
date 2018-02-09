@@ -27,6 +27,7 @@ def main(rate=100):
     rk = Ratekeeper(rate)
 
     panda_list = Panda.list()
+    print(panda_list)
 
     if serial in panda_list:
         panda = Panda(serial)

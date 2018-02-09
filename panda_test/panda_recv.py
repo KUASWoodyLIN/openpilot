@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import sys
 import os
 import struct
@@ -30,6 +32,7 @@ def check_send_alive(rk, rate, panda):
 
 def main(rate=100):
     panda_list = Panda.list()
+    print(panda_list)
     rk = Ratekeeper(rate)
 
     cp = get_car_can_parser()

@@ -1,0 +1,17 @@
+version: '2'
+services:
+  openpilot:
+    image: tmppilot
+    volumes:
+      - /dev/bus/usb:/dev/bus/usb
+      - /home/woodylin/marge/openpilot:/home/share/openpilot
+      - /tmp/.X11-unix:/tmp/.X11-unix
+    environment:
+      - DISPLAY=unix$DISPLAY
+      - USER=root
+    privileged: true
+    ports:
+      - 8888:8888
+#    command: tail -F anything
+
+
