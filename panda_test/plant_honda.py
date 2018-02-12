@@ -1,30 +1,17 @@
 import os
 import sys
-path = os.path.dirname(os.path.abspath(__file__))
-openpilot_path, _ = os.path.split(path)
+openpilot_path, _ = os.path.split(os.getcwd())
 sys.path.append(openpilot_path)
 
-import zmq
 import numpy as np
 from panda import Panda
-
 from opendbc import DBC_PATH
-
 from common.realtime import Ratekeeper
-
-import selfdrive.messaging as messaging
-from selfdrive.services import service_list
 from selfdrive.config import CruiseButtons
 from selfdrive.car.honda.hondacan import fix
 from selfdrive.car.honda.carstate import get_can_signals
-from selfdrive.boardd.boardd import can_capnp_to_can_list, can_list_to_can_capnp
-
-from selfdrive.car.honda.old_can_parser import CANParser
 from selfdrive.car.honda.interface import CarInterface
-
-from cereal import car
 from common.dbc import dbc
-
 from selfdrive.test.plant.plant import car_plant, get_car_can_parser, to_3_byte, to_3s_byte
 
 honda = dbc(os.path.join(DBC_PATH, "honda_civic_touring_2016_can.dbc"))

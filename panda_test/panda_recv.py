@@ -5,8 +5,8 @@ import os
 import struct
 import binascii
 
-path, panda_path = os.path.split(os.path.dirname(__file__))
-sys.path.append(path)
+path, panda_path = os.path.split(os.getcwd())
+print'Openpilot path: ', path
 
 from collections import defaultdict
 from panda import Panda
@@ -32,14 +32,14 @@ def check_send_alive(rk, rate, panda):
 
 def main(rate=100):
     panda_list = Panda.list()
-    print(panda_list)
+    print panda_list
     rk = Ratekeeper(rate)
 
     cp = get_car_can_parser()
 
     # init
     distance, distance_prev = 0., 0.
-    speed, speed_pred = 0., 0.
+    speed, speed_prev = 0., 0.
     angle_steer = 0.
     grade = 0.0
     ts = 1./rate

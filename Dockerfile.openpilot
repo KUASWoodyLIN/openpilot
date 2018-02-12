@@ -32,7 +32,8 @@ RUN apt-get update && apt-get install -y \
         libhdf5-dev \
         libpq-dev \
         libv4l-dev \
-        qt5-default
+        qt5-default \
+	python-tk
 
 RUN pip install numpy==1.11.2 scipy==0.18.1 matplotlib
 

@@ -1,19 +1,14 @@
 # coding:utf-8
-import sys
 import os
-sys.path.append('/home/woodylin/github/openpilot')
-import time
-
 import zmq
 import selfdrive.messaging as messaging
+from selfdrive.car.honda.carcontroller import CarController
 from selfdrive.services import service_list
 from selfdrive.car.honda import hondacan
 from selfdrive.boardd.boardd import can_list_to_can_capnp
 from common.numpy_fast import clip
 from common.realtime import set_realtime_priority, Ratekeeper
 from dashboard.lib.keyboardCatcher import KeyboardCatcher
-
-
 
 def data_send(kb, frame, sendcan, accord, crv, GAS_MAX, BRAKE_MAX, STEER_MAX, GAS_OFFSET):
     #apply_gas, apply_brake, apply_steer= kb.get_data()

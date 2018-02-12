@@ -7,12 +7,9 @@ import time
 
 import zmq
 import numpy as np
-from cereal import car, log
 import selfdrive.messaging as messaging
 from selfdrive.car.honda.carcontroller import CarController
-from selfdrive.controls.lib.alertmanager import AlertManager
 from selfdrive.services import service_list
-from selfdrive.car import get_car
 from selfdrive.car.honda import hondacan
 from selfdrive.boardd.boardd import can_list_to_can_capnp
 from common.numpy_fast import clip
@@ -154,7 +151,7 @@ def data_send(kb, frame, sendcan, accord, crv, GAS_MAX, BRAKE_MAX, STEER_MAX, GA
     sendcan.send(can_list_to_can_capnp(can_sends, msgtype='sendcan').to_bytes())
 
 def main():
-    # keyboard
+    # lib
     kb = keyboardCatcher(step=10)
 
     # loop rate 0.01s
@@ -198,7 +195,7 @@ def main():
 
     while True:
         try:
-            # catch keyboard input
+            # catch lib input
             kb.catch_input()
             # publish data
             frame = frame + 1
